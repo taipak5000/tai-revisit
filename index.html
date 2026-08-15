@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/app-icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="再訪精霊DB">
+  <meta name="theme-color" content="#32ADE6">
+  <title>再訪精霊データベース - Sky所持率管理</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #F2F2F7;
+      --card:      #FFFFFF;
+      --sep:       rgba(60,60,67,0.12);
+      --cyan:      #32ADE6;
+      --cyan-d:    #1A87BD;
+      --cyan-bg:   rgba(50,173,230,0.10);
+      --green:     #34C759;
+      --red:       #FF3B30;
+      --text:      #1C1C1E;
+      --text-2:    #8E8E93;
+      --text-3:    #C7C7CC;
+      --r:         16px;
+      --r-sm:      10px;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    a { text-decoration:none; color:inherit; -webkit-tap-highlight-color:transparent; }
+    button { cursor:pointer; border:none; background:none; font-family:inherit; }
+    input, select { font-family:inherit; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 60px;
+    }
+
+    nav {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(242,242,247,0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 0.5px solid var(--sep); padding: 14px 20px 12px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+    .sidebar-toggle-btn {
+      background: var(--card); border: 1px solid var(--sep); border-radius: var(--r-sm);
+      padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--text);
+      display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    }
+    @media (min-width: 850px) { .sidebar-toggle-btn { visibility: hidden; } }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 499; }
+    .sidebar-overlay.show { display: block; }
+
+    .app-layout { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+    @media (min-width: 850px) { .app-layout { max-width: 960px; display: flex; gap: 20px; align-items: flex-start; } }
+    .wrap { flex: 1; min-width: 0; }
+
+    .sidebar {
+      width: 200px; flex-shrink: 0; position: sticky; top: 58px;
+      background: var(--card); border-radius: var(--r); padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07); display: none; margin-top: 22px;
+    }
+    @media (min-width: 850px) { .sidebar { display: block; } }
+    .sidebar.sidebar-open {
+      display: flex !important; flex-direction: column; position: fixed; top: 0; left: 0;
+      height: 100%; width: 240px; z-index: 500; overflow-y: auto; margin-top: 0;
+      border-radius: 0 12px 12px 0; box-shadow: 4px 0 24px rgba(0,0,0,0.2);
+    }
+    .sidebar-close-btn {
+      background: none; border: none; font-size: 22px; cursor: pointer;
+      color: var(--text-2); padding: 0; line-height: 1; flex-shrink: 0; display: none;
+    }
+    .sidebar.sidebar-open .sidebar-close-btn { display: block; }
+    .sidebar-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .sidebar-section-label { font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; }
+    .sidebar-nav-link {
+      display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: var(--r-sm);
+      color: var(--text); font-size: 13.5px; font-weight: 500; margin-bottom: 2px;
+      width: 100%; box-sizing: border-box; white-space: nowrap;
+    }
+    .sidebar-nav-link:hover { background: var(--bg); }
+    .sidebar-nav-link.current-tool { background: var(--cyan-bg); color: var(--cyan-d); font-weight: 700; }
+
+    .sec-label { font-size: 15px; font-weight: 700; color: var(--text); padding: 20px 4px 10px; display: flex; align-items: center; gap: 6px; }
+    .sec-sub { font-size: 12px; color: var(--text-2); padding: 0 4px 12px; line-height: 1.7; }
+    .card { background: var(--card); border-radius: var(--r); padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); margin-bottom: 14px; }
+    .card p { font-size: 13px; line-height: 1.8; color: var(--text); }
+    .card a { color: var(--cyan-d); text-decoration: underline; text-underline-offset: 2px; }
+
+    /* ── 検索・フィルター ─────────────────────── */
+    .filter-card { background: var(--card); border-radius: var(--r); padding: 14px; margin-top: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .filter-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .filter-search, .filter-select {
+      flex: 1 1 200px; background: var(--bg); border: 1.5px solid var(--sep); border-radius: var(--r-sm);
+      padding: 10px 12px; font-size: 14px; color: var(--text); box-sizing: border-box;
+    }
+    .filter-search:focus, .filter-select:focus { outline: none; border-color: var(--cyan); }
+    .filter-select { flex: 1 1 140px; }
+    .filter-stats { font-size: 12px; color: var(--text-2); padding: 10px 2px 0; }
+
+    /* ── 精霊カード ─────────────────────────── */
+    .spirit-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+    .spirit-card { background: var(--card); border-radius: var(--r); padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); display: flex; gap: 12px; }
+    .spirit-icon {
+      width: 52px; height: 52px; border-radius: 12px; background: var(--bg); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .spirit-icon img { width: 100%; height: 100%; object-fit: contain; }
+    .spirit-body { flex: 1; min-width: 0; }
+    .spirit-name-ja { font-size: 15px; font-weight: 700; }
+    .spirit-name-en { font-size: 11.5px; color: var(--text-2); margin-top: 1px; }
+    .spirit-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .spirit-badge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--cyan-bg); color: var(--cyan-d); }
+    .spirit-badge.area { background: var(--bg); color: var(--text-2); font-weight: 500; }
+    .visit-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .visit-chip { font-size: 11px; font-variant-numeric: tabular-nums; padding: 3px 8px; border-radius: 6px; background: var(--bg); color: var(--text); white-space: nowrap; }
+    .visit-chip.sv { background: rgba(52,199,89,0.12); color: #248A3D; }
+    .visit-chip.err { background: rgba(255,59,48,0.10); color: var(--red); }
+    .visit-count { font-size: 11px; color: var(--text-2); margin-top: 6px; }
+
+    .empty-state { text-align: center; padding: 40px 16px; color: var(--text-2); font-size: 13px; }
+
+    footer { text-align: center; font-size: 11.5px; color: var(--text-3); padding: 34px 16px 12px; line-height: 1.9; }
+    footer a { color: var(--cyan-d); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-title">🕊️ 再訪精霊データベース</div>
+  <button class="sidebar-toggle-btn" onclick="toggleSidebar()">☰ ツール</button>
+</nav>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-section-label">🔗 関連ツール</div>
+      <button class="sidebar-close-btn" onclick="toggleSidebar()">✕</button>
+    </div>
+    <a href="https://taipak5000.github.io/tai-item/" class="sidebar-nav-link">🗂️ アイテム所持管理</a>
+    <a href="https://taipak5000.github.io/tai-emote/" class="sidebar-nav-link">🎭 エモート所持率管理</a>
+    <a href="https://taipak5000.github.io/share/" class="sidebar-nav-link">📍 創作物管理ツール</a>
+    <a href="https://taipak5000.github.io/tai-nomacan/" class="sidebar-nav-link">🕯️ ノマキャン計算機</a>
+    <a href="https://taipak5000.github.io/star-candle/" class="sidebar-nav-link">🕯️ 星のキャンドル計算機</a>
+    <a href="https://taipak5000.github.io/companion/" class="sidebar-nav-link">✨ 精霊同行ツール</a>
+    <a href="https://taipak5000.github.io/tai-catalog/" class="sidebar-nav-link">🌳 精霊ツリー管理</a>
+    <a href="https://taipak5000.github.io/wings/" class="sidebar-nav-link">🪽 羽トラッカー</a>
+    <a href="https://taipak5000.github.io/tai-revisit/" class="sidebar-nav-link current-tool">🕊️ 再訪精霊データベース</a>
+    <a href="https://taipak5000.github.io/tai-transfer/" class="sidebar-nav-link">🔄 データ引継ぎ</a>
+  </aside>
+
+  <div class="wrap">
+    <div class="card" style="margin-top:14px;">
+      <p>過去に来訪（Traveling Spirit）・特別来訪（Returning Spirits）した精霊の履歴を検索できる、閲覧専用の参考データベースです。所持チェックなどの記録機能はありません。データは
+        <a href="https://github.com/Silverfeelin/SkyGame-Data" target="_blank" rel="noopener noreferrer">SkyGame-Data</a>
+        プロジェクトを基にしています。</p>
+    </div>
+
+    <div class="filter-card">
+      <div class="filter-row">
+        <input type="search" class="filter-search" id="searchInput" placeholder="🔍 精霊名で検索…" oninput="renderList()">
+        <select class="filter-select" id="seasonFilter" onchange="renderList()">
+          <option value="all">すべての季節</option>
+        </select>
+        <select class="filter-select" id="sortMode" onchange="renderList()">
+          <option value="latest">最新の来訪順</option>
+          <option value="name">精霊名順</option>
+          <option value="count">来訪回数が多い順</option>
+        </select>
+      </div>
+      <div class="filter-stats" id="filterStats"></div>
+    </div>
+
+    <div class="spirit-list" id="spiritList"><!-- JS --></div>
+  </div>
+</div>
+
+<footer>
+  このサイトはSky 星を紡ぐ子どもたちの非公式ファンサイトです。thatgamecompanyは一切関与していません。<br>
+  再訪履歴データ: <a href="https://github.com/Silverfeelin/SkyGame-Data" target="_blank" rel="noopener noreferrer">SkyGame-Data</a>（Silverfeelin氏、MIT License）／
+  精霊アイコン: © Sky: Children of the Light Icons by contributors of the Sky: Children of the Light wiki<br>
+  作成・ご意見: <a href="https://x.com/Skyzztai" target="_blank" rel="noopener noreferrer">@Skyzztai</a>　／
+  <a href="https://odaibako.net/u/Skyzztai" target="_blank" rel="noopener noreferrer">リクエストフォーム</a><br>
+  <span style="font-size:12px; margin-top:4px; display:inline-block;">
+    <a href="https://taipak5000.github.io/tai-info/" target="_blank" rel="noopener noreferrer">⚙️ 設定・更新情報・クレジット・プライバシーポリシー</a>
+  </span>
+</footer>
+
+<script>
+/* ================================================================
+   再訪精霊データ（92精霊・230件の来訪履歴、2020-01〜2026-08）
+   出典: SkyGame-Data (https://github.com/Silverfeelin/SkyGame-Data)
+   来訪日は最新→最古の順、各精霊内は古い→新しい順。
+   type: 'TS'=通常の来訪(Traveling Spirit) / 'SV'=特別来訪(複数精霊同時、Returning Spirits)
+         / 'TS-Error'=ゲーム側の一時的な誤表示
+   ================================================================ */
+const REVISIT_DATA = [{"nameJa":"旋舞の師匠","nameEn":"Spinning Mentor","season":"夢かなう季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/2/2b/Dreams-Spirit-Spinning-Mentor.png","area":"Village of Dreams","visits":[{"date":"2022-04-14","endDate":null,"type":"TS"},{"date":"2023-07-06","endDate":null,"type":"TS"},{"date":"2024-08-15","endDate":null,"type":"TS"},{"date":"2026-08-13","endDate":null,"type":"TS"}]},{"nameJa":"紙ふぶき好きのいとこ","nameEn":"Confetti Cousin","season":"想いを編む季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/0/06/Belonging-Spirit-Confetti-Cousin.png","area":"Butterfly Fields","visits":[{"date":"2020-07-09","endDate":null,"type":"TS"},{"date":"2021-01-21","endDate":null,"type":"TS"},{"date":"2023-09-28","endDate":null,"type":"TS"},{"date":"2026-07-30","endDate":null,"type":"TS"}]},{"nameJa":"光の語り部","nameEn":"Light Whisperer","season":"羽ばたく季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/d/db/Flight-Spirit-Light-Whisperer.png","area":"The Wind Paths","visits":[{"date":"2024-02-29","endDate":null,"type":"TS"},{"date":"2026-07-16","endDate":null,"type":"TS"}]},{"nameJa":"礼を尽くす祈祷師","nameEn":"Greeting Shaman","season":"感謝の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/3/3e/Gratitude-Spirit-Greeting-Shaman.png","area":"Upper Vault","visits":[{"date":"2020-07-23","endDate":null,"type":"TS"},{"date":"2022-05-26","endDate":null,"type":"TS"},{"date":"2023-07-03","endDate":"2023-07-16","type":"SV"},{"date":"2026-07-02","endDate":null,"type":"TS"}]},{"nameJa":"寂れたオアシスの面影","nameEn":"Vestige of a Deserted Oasis","season":"復古の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/1/1c/Vestige-of-a-Deserted-Oasis-Shop.png","area":"Revival Season Shop","visits":[{"date":"2026-06-19","endDate":"2026-07-02","type":"SV"}]},{"nameJa":"失われし村の記憶","nameEn":"Memory of a Lost Village","season":"復古の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/2/2f/Memory-of-a-Lost-Village-Shop.png","area":"Revival Season Shop","visits":[{"date":"2026-06-19","endDate":"2026-07-02","type":"SV"}]},{"nameJa":"見捨てられた隠れ家の残響","nameEn":"Echo of an Abandoned Refuge","season":"復古の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/c/c0/Echo-of-an-Abandoned-Refuge-Shop.png","area":"Revival Season Shop","visits":[{"date":"2026-06-19","endDate":"2026-07-02","type":"SV"}]},{"nameJa":"忘れ去られた楽園のなごり","nameEn":"Remnant of a Forgotten Haven","season":"復古の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/8/86/Remnant-of-a-Forgotten-Haven-Shop.png","area":"Revival Season Shop","visits":[{"date":"2026-06-19","endDate":"2026-07-02","type":"SV"}]},{"nameJa":"けんかごっこ好きの植物採集者","nameEn":"Playfighting Herbalist","season":"魔法の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/1/11/Enchantment-Spirit-Playfighting-Herbalist.png","area":"Forgotten Ark","visits":[{"date":"2021-10-28","endDate":null,"type":"TS"},{"date":"2023-10-12","endDate":null,"type":"TS"},{"date":"2026-06-18","endDate":null,"type":"TS"},{"date":"2026-06-18","endDate":"2026-06-19","type":"TS-Error"}]},{"nameJa":"くるりと舞う優勝者","nameEn":"Twirling Champion","season":"光の探求者の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/d/de/Lightseekers-Spirit-Twirling-Champion.png","area":"Frozen Lake","visits":[{"date":"2020-09-17","endDate":null,"type":"TS"},{"date":"2022-01-06","endDate":null,"type":"TS"},{"date":"2024-02-01","endDate":null,"type":"TS"},{"date":"2026-06-04","endDate":null,"type":"TS"}]},{"nameJa":"頼もしい自然保護官","nameEn":"Reassuring Ranger","season":"瞬きの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/6/6b/Moments-Spirit-Reassuring-Ranger.png","area":"Prairie Peaks","visits":[{"date":"2026-05-21","endDate":null,"type":"TS"}]},{"nameJa":"くつろぐ日光浴者","nameEn":"Chill Sunbather","season":"楽園の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/d/d5/Sanctuary-Spirit-Chill-Sunbather.png","area":"Sanctuary Islands","visits":[{"date":"2021-08-19","endDate":null,"type":"TS"},{"date":"2024-01-04","endDate":null,"type":"TS"},{"date":"2026-05-07","endDate":null,"type":"TS"}]},{"nameJa":"活発すぎる頑張り屋","nameEn":"Overactive Overachiever","season":"ならいの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/a/a5/Passage-Overactive-Overachiever-Cutout.png","area":"Passage Rock","visits":[{"date":"2026-04-23","endDate":null,"type":"TS"}]},{"nameJa":"海月の語り部","nameEn":"Jelly Whisperer","season":"楽園の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/4/43/Sanctuary-Spirit-Jelly-Whisperer.png","area":"Sanctuary Islands","visits":[{"date":"2021-11-25","endDate":null,"type":"TS"},{"date":"2023-08-31","endDate":null,"type":"TS"},{"date":"2026-04-09","endDate":null,"type":"TS"}]},{"nameJa":"動じない提督","nameEn":"Ceasing Commodore","season":"深淵の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/9/99/Abyss-Spirit-Ceasing-Commodore.png","area":"Treasure Reef","visits":[{"date":"2024-03-04","endDate":"2024-03-17","type":"SV"},{"date":"2026-03-26","endDate":null,"type":"TS"}]},{"nameJa":"ハイキングする気むずかし屋","nameEn":"Hiking Grouch","season":"楽園の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/2/26/Sanctuary-Spirit-Hiking-Grouch.png","area":"Sanctuary Islands","visits":[{"date":"2022-02-17","endDate":null,"type":"TS"},{"date":"2023-08-07","endDate":"2023-08-13","type":"SV"},{"date":"2026-03-12","endDate":null,"type":"TS"}]},{"nameJa":"夢見がちな森の民","nameEn":"Daydream Forester","season":"大樹に集う季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/d/dc/Assembly-Spirit-Daydream-Forester.png","area":"Boneyard","visits":[{"date":"2022-04-28","endDate":null,"type":"TS"},{"date":"2024-03-14","endDate":null,"type":"TS"},{"date":"2026-02-27","endDate":"2026-03-12","type":"SV"}]},{"nameJa":"したり顔の生徒","nameEn":"Scolding Student","season":"大樹に集う季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/1/10/Assembly-Spirit-Scolding-Student.png","area":"Forest Courtyard","visits":[{"date":"2022-08-18","endDate":null,"type":"TS"},{"date":"2024-12-05","endDate":null,"type":"TS"},{"date":"2026-02-27","endDate":"2026-03-12","type":"SV"}]},{"nameJa":"とまどう植物学者","nameEn":"Baffled Botanist","season":"大樹に集う季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/8/81/Assembly-Spirit-Baffled-Botanist.png","area":"Forest Courtyard","visits":[{"date":"2023-01-05","endDate":null,"type":"TS"},{"date":"2023-03-06","endDate":"2023-03-19","type":"SV"},{"date":"2024-09-26","endDate":null,"type":"TS"},{"date":"2026-02-27","endDate":"2026-03-12","type":"SV"}]},{"nameJa":"含み笑いのスカウト","nameEn":"Chuckling Scout","season":"大樹に集う季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/b/b8/Assembly-Spirit-Chuckling-Scout.png","area":"Boneyard","visits":[{"date":"2023-03-06","endDate":"2023-03-19","type":"SV"},{"date":"2025-03-13","endDate":null,"type":"TS"},{"date":"2026-02-27","endDate":"2026-03-12","type":"SV"}]},{"nameJa":"行進する冒険家","nameEn":"Marching Adventurer","season":"大樹に集う季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/d/dd/Assembly-Spirit-Marching-Adventurer.png","area":"Forest Brook","visits":[{"date":"2023-03-06","endDate":"2023-03-19","type":"SV"},{"date":"2025-07-03","endDate":null,"type":"TS"},{"date":"2026-02-27","endDate":"2026-03-12","type":"SV"}]},{"nameJa":"臆病な見習い士官","nameEn":"Scaredy Cadet","season":"大樹に集う季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/0/0c/Assembly-Spirit-Scaredy-Cadet.png","area":"Forest Brook","visits":[{"date":"2023-03-06","endDate":"2023-03-19","type":"SV"},{"date":"2025-08-28","endDate":null,"type":"TS"},{"date":"2026-02-27","endDate":"2026-03-12","type":"SV"}]},{"nameJa":"居眠りする大工","nameEn":"Snoozing Carpenter","season":"魔法の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/c/c4/Enchantment-Spirit-Snoozing-Carpenter.png","area":"Forgotten Ark","visits":[{"date":"2021-05-27","endDate":null,"type":"TS"},{"date":"2023-04-27","endDate":null,"type":"TS"},{"date":"2026-02-26","endDate":null,"type":"TS"}]},{"nameJa":"感謝する貝殻収集家","nameEn":"Grateful Shell Collector","season":"楽園の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/f/fa/Sanctuary-Spirit-Grateful-Shell-Collector.png","area":"Sanctuary Islands","visits":[{"date":"2021-09-30","endDate":null,"type":"TS"},{"date":"2023-05-25","endDate":null,"type":"TS"},{"date":"2026-02-12","endDate":null,"type":"TS"}]},{"nameJa":"物憂げなとぼとぼ歩き","nameEn":"Melancholy Mope","season":"ならいの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/7/7a/Passage-Melancholy-Mope-Cutout.png","area":"Passage Rock","visits":[{"date":"2026-01-29","endDate":null,"type":"TS"}]},{"nameJa":"煌きを放つ親","nameEn":"Sparkler Parent","season":"想いを編む季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/f/f6/Belonging-Spirit-Sparkler-Parent.png","area":"Temple of the Valley","visits":[{"date":"2020-05-14","endDate":null,"type":"TS"},{"date":"2021-04-01","endDate":null,"type":"TS"},{"date":"2021-12-23","endDate":null,"type":"TS"},{"date":"2023-06-22","endDate":null,"type":"TS"},{"date":"2026-01-15","endDate":null,"type":"TS"}]},{"nameJa":"節制の修行者","nameEn":"Ascetic Monk","season":"瞬きの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/5/5c/Moments-Spirit-Ascetic-Monk.png","area":"Prairie Peaks","visits":[{"date":"2026-01-01","endDate":null,"type":"TS"}]},{"nameJa":"蟹の語り部","nameEn":"Crab Whisperer","season":"光の探求者の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/1/10/Lightseekers-Spirit-Crab-Whisperer.png","area":"Crab Fields","visits":[{"date":"2020-04-09","endDate":null,"type":"TS"},{"date":"2021-09-02","endDate":null,"type":"TS"},{"date":"2023-08-07","endDate":"2023-08-13","type":"SV"},{"date":"2025-12-18","endDate":null,"type":"TS"}]},{"nameJa":"火の預言者","nameEn":"Prophet of Fire","season":"預言者の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/b/b7/Prophecy-Spirit-Prophet-of-Fire.png","area":"Cave of Prophecies","visits":[{"date":"2021-12-09","endDate":null,"type":"TS"},{"date":"2023-08-03","endDate":null,"type":"TS"},{"date":"2025-12-04","endDate":null,"type":"TS"}]},{"nameJa":"豪快に笑う砲手","nameEn":"Cackling Cannoneer","season":"深淵の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/4/48/Abyss-Spirit-Cackling-Cannoneer.png","area":"Treasure Reef","visits":[{"date":"2023-08-07","endDate":"2023-08-13","type":"SV"},{"date":"2025-11-20","endDate":null,"type":"TS"}]},{"nameJa":"そっと覗く郵便屋","nameEn":"Peeking Postman","season":"夢かなう季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/8/8a/Dreams-Spirit-Peeking-Postman.png","area":"Village of Dreams","visits":[{"date":"2022-06-23","endDate":null,"type":"TS"},{"date":"2025-11-17","endDate":"2025-11-30","type":"SV"}]},{"nameJa":"ハグ好きの隠者","nameEn":"Bearhug Hermit","season":"夢かなう季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/3/31/Dreams-Spirit-Bearhug-Hermit.png","area":"Village of Dreams","visits":[{"date":"2022-11-24","endDate":null,"type":"TS"},{"date":"2024-02-15","endDate":null,"type":"TS"},{"date":"2025-11-17","endDate":"2025-11-30","type":"SV"}]},{"nameJa":"のんびり屋の音楽家","nameEn":"Mellow Musician","season":"表現者たちの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/f/fb/Performance-Spirit-Mellow-Musician.png","area":"Village Theatre","visits":[{"date":"2024-08-01","endDate":null,"type":"TS"},{"date":"2025-11-17","endDate":"2025-11-30","type":"SV"}]},{"nameJa":"一生懸命な舞台美術家","nameEn":"Frantic Stagehand","season":"表現者たちの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/c/c0/Performance-Spirit-Frantic-Stagehand.png","area":"Village Theatre","visits":[{"date":"2024-03-04","endDate":"2024-03-17","type":"SV"},{"date":"2025-11-17","endDate":"2025-11-30","type":"SV"}]},{"nameJa":"敬意を表す楽師","nameEn":"Respectful Pianist","season":"リズムが弾ける季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/8/8a/Rhythm-Spirit-Respectful-Pianist.png","area":"The Graveyard","visits":[{"date":"2021-02-04","endDate":null,"type":"TS"},{"date":"2023-07-03","endDate":"2023-07-16","type":"SV"},{"date":"2025-11-06","endDate":null,"type":"TS"}]},{"nameJa":"夜鳥の語り部","nameEn":"Nightbird Whisperer","season":"瞬きの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/6/6f/Moments-Spirit-Nightbird-Whisperer.png","area":"Prairie Peaks","visits":[{"date":"2025-10-23","endDate":null,"type":"TS"}]},{"nameJa":"うっとりするような旅役者","nameEn":"Admiring Actor","season":"リズムが弾ける季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/2/2f/Rhythm-Spirit-Admiring-Actor.png","area":"Boneyard","visits":[{"date":"2020-10-15","endDate":null,"type":"TS"},{"date":"2021-06-24","endDate":null,"type":"TS"},{"date":"2023-06-08","endDate":null,"type":"TS"},{"date":"2025-10-09","endDate":null,"type":"TS"}]},{"nameJa":"風の預言者","nameEn":"Prophet of Air","season":"預言者の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/f/f5/Prophecy-Spirit-Prophet-of-Air.png","area":"Cave of Prophecies","visits":[{"date":"2022-05-12","endDate":null,"type":"TS"},{"date":"2023-05-15","endDate":"2023-05-21","type":"SV"},{"date":"2025-09-25","endDate":null,"type":"TS"}]},{"nameJa":"挑戦的な表現者","nameEn":"Provoking Performer","season":"感謝の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/2/25/Gratitude-Spirit-Provoking-Performer.png","area":"Forest Brook","visits":[{"date":"2020-03-12","endDate":null,"type":"TS"},{"date":"2020-10-01","endDate":null,"type":"TS"},{"date":"2023-03-30","endDate":null,"type":"TS"},{"date":"2023-04-13","endDate":"2023-04-13","type":"TS-Error"},{"date":"2025-09-11","endDate":null,"type":"TS"}]},{"nameJa":"繊細な漁師","nameEn":"Anxious Angler","season":"深淵の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/5/5f/Abyss-Spirit-Anxious-Angler.png","area":"Treasure Reef","visits":[{"date":"2024-01-18","endDate":null,"type":"TS"},{"date":"2025-08-18","endDate":"2025-08-31","type":"SV"}]},{"nameJa":"おっちょこちょいな水夫長","nameEn":"Bumbling Boatswain","season":"深淵の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/0/0c/Abyss-Spirit-Bumbling-Boatswain.png","area":"Treasure Reef","visits":[{"date":"2024-10-10","endDate":null,"type":"TS"},{"date":"2025-08-18","endDate":"2025-08-31","type":"SV"}]},{"nameJa":"傷ついた戦士","nameEn":"Wounded Warrior","season":"追慕の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/d/d8/Remembrance-Spirit-Wounded-Warrior.png","area":"Repository of Refuge","visits":[{"date":"2025-08-18","endDate":"2025-08-31","type":"SV"}]},{"nameJa":"ぬき足の茶人","nameEn":"Tiptoeing Tea-Brewer","season":"追慕の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/e/ea/Remembrance-Spirit-Tiptoeing-Tea-Brewer.png","area":"Repository of Refuge","visits":[{"date":"2025-08-18","endDate":"2025-08-31","type":"SV"}]},{"nameJa":"工夫好きの風鈴職人","nameEn":"Tinkering Chimesmith","season":"羽ばたく季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/5/51/Flight-Spirit-Tinkering-Chimesmith.png","area":"The Wind Paths","visits":[{"date":"2023-05-11","endDate":null,"type":"TS"},{"date":"2025-08-14","endDate":null,"type":"TS"}]},{"nameJa":"地の預言者","nameEn":"Prophet of Earth","season":"預言者の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/8/8a/Prophecy-Spirit-Prophet-of-Earth.png","area":"Cave of Prophecies","visits":[{"date":"2022-02-03","endDate":null,"type":"TS"},{"date":"2023-05-15","endDate":"2023-05-21","type":"SV"},{"date":"2024-08-29","endDate":"2024-09-05","type":"TS"},{"date":"2025-07-31","endDate":null,"type":"TS"}]},{"nameJa":"上機嫌な地質学者","nameEn":"Jolly Geologist","season":"瞬きの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/5/55/Moments-Spirit-Jolly-Geologist.png","area":"Prairie Peaks","visits":[{"date":"2025-07-17","endDate":null,"type":"TS"}]},{"nameJa":"音と舞う幼子","nameEn":"Boogie Kid","season":"想いを編む季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/3/3c/Belonging-Spirit-Boogie-Kid.png","area":"Dawn Overlook","visits":[{"date":"2020-11-12","endDate":null,"type":"TS"},{"date":"2021-07-22","endDate":null,"type":"TS"},{"date":"2023-03-02","endDate":null,"type":"TS"},{"date":"2025-06-19","endDate":null,"type":"TS"}]},{"nameJa":"慈愛の戦士","nameEn":"Warrior of Love","season":"AURORAの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/a/a3/Aurora-Spirit-Warrior-of-Love.png","area":"The Coliseum","visits":[{"date":"2024-11-07","endDate":null,"type":"TS"},{"date":"2025-06-09","endDate":"2025-06-22","type":"SV"}]},{"nameJa":"覚醒の採掘者","nameEn":"Mindful Miner","season":"AURORAの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/a/ab/Aurora-Spirit-Mindful-Miner.png","area":"The Coliseum","visits":[{"date":"2025-02-27","endDate":null,"type":"TS"},{"date":"2025-06-09","endDate":"2025-06-22","type":"SV"}]},{"nameJa":"駆けゆく旅人","nameEn":"Running Wayfarer","season":"AURORAの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/6/65/Aurora-Spirit-Running-Wayfairer.png","area":"The Coliseum","visits":[{"date":"2025-06-09","endDate":"2025-06-22","type":"SV"}]},{"nameJa":"希望の君","nameEn":"Seed of Hope","season":"AURORAの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/c/c4/Aurora-Spirit-Seed-of-Hope.png","area":"The Coliseum","visits":[{"date":"2025-06-09","endDate":"2025-06-22","type":"SV"}]},{"nameJa":"くつろぐ開拓者","nameEn":"Laidback Pioneer","season":"光の探求者の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/a/a6/Lightseekers-Spirit-Laidback-Pioneer.png","area":"Forest Brook","visits":[{"date":"2020-02-27","endDate":null,"type":"TS"},{"date":"2020-11-26","endDate":null,"type":"TS"},{"date":"2022-10-13","endDate":null,"type":"TS"},{"date":"2025-06-05","endDate":null,"type":"TS"}]},{"nameJa":"喪失の初老","nameEn":"Bereft Veteran","season":"追慕の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/8/86/Remembrance-Spirit-Bereft-Veteran.png","area":"Repository of Refuge","visits":[{"date":"2025-05-22","endDate":null,"type":"TS"}]},{"nameJa":"快活な誘導手","nameEn":"Lively Navigator","season":"羽ばたく季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/9/9a/Flight-Spirit-Lively-Navigator.png","area":"The Wind Paths","visits":[{"date":"2023-08-17","endDate":null,"type":"TS"},{"date":"2025-05-08","endDate":null,"type":"TS"}]},{"nameJa":"ぐるぐる回るいたずらっ子","nameEn":"Tumbling Troublemaker","season":"ならいの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/e/ee/Passage-Tumbling-Troublemaker-Cutout.png","area":"Passage Rock","visits":[{"date":"2025-04-24","endDate":null,"type":"TS"}]},{"nameJa":"屈伸する導師","nameEn":"Stretching Guru","season":"感謝の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/4/46/Gratitude-Spirit-Stretching-Guru.png","area":"Prairie Cave","visits":[{"date":"2020-04-30","endDate":null,"type":"TS"},{"date":"2022-03-17","endDate":null,"type":"TS"},{"date":"2025-04-10","endDate":null,"type":"TS"}]},{"nameJa":"手招く支配者","nameEn":"Beckoning Ruler","season":"星の王子さまの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/5/58/Little-Prince-Spirit-Beckoning-Ruler.png","area":"Starlight Desert","visits":[{"date":"2022-09-29","endDate":null,"type":"TS"},{"date":"2024-07-04","endDate":null,"type":"TS"},{"date":"2025-04-07","endDate":"2025-04-20","type":"SV"}]},{"nameJa":"うなだれる戦士","nameEn":"Slouching Soldier","season":"星の王子さまの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/9/9f/Little-Prince-Spirit-Slouching-Soldier.png","area":"Starlight Desert Jar","visits":[{"date":"2023-02-16","endDate":null,"type":"TS"},{"date":"2025-04-07","endDate":"2025-04-20","type":"SV"}]},{"nameJa":"くしゃみする地理学者","nameEn":"Sneezing Geographer","season":"星の王子さまの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/8/84/Little-Prince-Spirit-Sneezing-Geographer.png","area":"Starlight Desert","visits":[{"date":"2023-04-13","endDate":null,"type":"TS"},{"date":"2025-04-07","endDate":"2025-04-20","type":"SV"}]},{"nameJa":"ご満悦のうぬぼれ屋","nameEn":"Gloating Narcissist","season":"星の王子さまの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/f/fe/Little-Prince-Spirit-Gloating-Narcissist.png","area":"Starlight Desert","visits":[{"date":"2023-07-20","endDate":null,"type":"TS"},{"date":"2025-04-07","endDate":"2025-04-20","type":"SV"}]},{"nameJa":"星の収集家","nameEn":"Star Collector","season":"星の王子さまの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/1/19/Little-Prince-Spirit-Star-Collector.png","area":"Jellyfish Beach","visits":[{"date":"2023-09-14","endDate":null,"type":"TS"},{"date":"2025-04-07","endDate":"2025-04-20","type":"SV"}]},{"nameJa":"体をほぐす点燈夫","nameEn":"Stretching Lamplighter","season":"星の王子さまの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/a/a2/Little-Prince-Spirit-Stretching-Lamplighter.png","area":"Starlight Desert","visits":[{"date":"2023-12-07","endDate":null,"type":"TS"},{"date":"2025-04-07","endDate":"2025-04-20","type":"SV"}]},{"nameJa":"奮い立つ怖いもの知らず","nameEn":"Rallying Thrillseeker","season":"楽園の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/c/c0/Sanctuary-Spirit-Rallying-Thrillseeker.png","area":"Sanctuary Islands","visits":[{"date":"2021-04-29","endDate":null,"type":"TS"},{"date":"2023-01-19","endDate":null,"type":"TS"},{"date":"2025-03-27","endDate":null,"type":"TS"}]},{"nameJa":"おんぶする光探求者","nameEn":"Piggyback Lightseeker","season":"光の探求者の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/a/a7/Lightseeker-Spirit-Piggyback-Lightseeker.png","area":"Dawn Circle","visits":[{"date":"2020-04-16","endDate":null,"type":"TS"},{"date":"2021-03-04","endDate":null,"type":"TS"},{"date":"2023-02-02","endDate":null,"type":"TS"},{"date":"2025-02-13","endDate":null,"type":"TS"}]},{"nameJa":"忘れっぽい劇作家","nameEn":"Forgetful Storyteller","season":"表現者たちの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/1/1e/Performance-Spirit-Forgetful-Storyteller.png","area":"Village Theatre","visits":[{"date":"2025-01-30","endDate":null,"type":"TS"}]},{"nameJa":"蟹歩きの名人","nameEn":"Crab Walker","season":"魔法の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/5/54/Enchantment-Spirit-Crab-Walker.png","area":"Forgotten Ark","visits":[{"date":"2021-02-18","endDate":null,"type":"TS"},{"date":"2023-03-16","endDate":null,"type":"TS"},{"date":"2025-01-16","endDate":null,"type":"TS"}]},{"nameJa":"一座の曲芸師","nameEn":"Troupe Juggler","season":"リズムが弾ける季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/5/56/Rhythm-Spirit-Troupe-Juggler.png","area":"Frozen Lake","visits":[{"date":"2021-09-16","endDate":null,"type":"TS"},{"date":"2023-10-26","endDate":null,"type":"TS"},{"date":"2025-01-13","endDate":"2025-01-26","type":"SV"}]},{"nameJa":"懇願する幼子","nameEn":"Pleading Child","season":"追慕の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/3/3c/Remembrance-Spirit-Pleading-Child.png","area":"Repository of Refuge","visits":[{"date":"2025-01-13","endDate":"2025-01-26","type":"SV"}]},{"nameJa":"慎み深い踊り手","nameEn":"Modest Dancer","season":"表現者たちの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/6/60/Performance-Spirit-Modest-Dancer.png","area":"Village Theatre","visits":[{"date":"2025-01-13","endDate":"2025-01-26","type":"SV"}]},{"nameJa":"風変わりなひとり好き","nameEn":"Oddball Outcast","season":"ならいの季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/1/11/Passage-Oddball-Outcast-Cutout.png","area":"Passage Rock","visits":[{"date":"2025-01-13","endDate":"2025-01-26","type":"SV"}]},{"nameJa":"一座の進行役","nameEn":"Troupe Greeter","season":"リズムが弾ける季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/5/56/Rhythm-Spirit-Troupe-Greeter.png","area":"Temple of the Isle Entrance","visits":[{"date":"2020-12-24","endDate":null,"type":"TS"},{"date":"2022-03-03","endDate":null,"type":"TS"},{"date":"2023-08-07","endDate":"2023-08-13","type":"SV"},{"date":"2025-01-02","endDate":null,"type":"TS"}]},{"nameJa":"水の預言者","nameEn":"Prophet of Water","season":"預言者の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/c/cf/Prophecy-Spirit-Prophet-of-Water.png","area":"Cave of Prophecies","visits":[{"date":"2021-08-05","endDate":null,"type":"TS"},{"date":"2022-11-10","endDate":null,"type":"TS"},{"date":"2023-05-15","endDate":"2023-05-21","type":"SV"},{"date":"2024-12-19","endDate":null,"type":"TS"}]},{"nameJa":"敬礼する守護者","nameEn":"Saluting Protector","season":"感謝の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/8/82/Gratitude-Spirit-Saluting-Protector.png","area":"The Graveyard","visits":[{"date":"2022-01-20","endDate":null,"type":"TS"},{"date":"2024-11-21","endDate":null,"type":"TS"},{"date":"2024-12-09","endDate":"2024-12-11","type":"SV"}]},{"nameJa":"訴えかける親","nameEn":"Pleaful Parent","season":"想いを編む季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/6/6c/Belonging-Spirit-Pleaful-Parent.png","area":"The Graveyard","visits":[{"date":"2020-03-26","endDate":null,"type":"TS"},{"date":"2020-12-10","endDate":null,"type":"TS"},{"date":"2022-12-22","endDate":null,"type":"TS"},{"date":"2024-10-24","endDate":null,"type":"TS"}]},{"nameJa":"万古の光（海月）","nameEn":"Ancient Light (Jellyfish)","season":"砕ケル闇ノ季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/e/e3/Shattering-Ancient_Light.png","area":"Void of Shattering","visits":[{"date":"2024-09-16","endDate":"2024-09-29","type":"SV"}]},{"nameJa":"万古の光（マンタ）","nameEn":"Ancient Light (Manta)","season":"砕ケル闇ノ季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/e/e3/Shattering-Ancient_Light.png","area":"Void of Shattering","visits":[{"date":"2024-09-16","endDate":"2024-09-29","type":"SV"}]},{"nameJa":"万古の闇（暗黒竜）","nameEn":"Ancient Darkness (Dragon)","season":"砕ケル闇ノ季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/f/f0/Shattering-Ancient_Darkness.png","area":"Void of Shattering","visits":[{"date":"2024-09-16","endDate":"2024-09-29","type":"SV"}]},{"nameJa":"万古の闇（蝕む闇）","nameEn":"Ancient Darkness (Plants)","season":"砕ケル闇ノ季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/f/f0/Shattering-Ancient_Darkness.png","area":"Void of Shattering","visits":[{"date":"2024-09-16","endDate":"2024-09-29","type":"SV"}]},{"nameJa":"静けさを望む光学者","nameEn":"Shushing Light Scholar","season":"光の探求者の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/a/a0/Lightseekers-Spirit-Shushing-Light-Scholar.png","area":"Upper Vault","visits":[{"date":"2020-08-20","endDate":null,"type":"TS"},{"date":"2022-09-16","endDate":null,"type":"TS"},{"date":"2024-09-12","endDate":null,"type":"TS"}]},{"nameJa":"こけおどしの農家","nameEn":"Scarecrow Farmer","season":"魔法の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/a/a1/Enchantment-Spirit-Scarecrow-Farmer.png","area":"Forgotten Ark","visits":[{"date":"2022-03-31","endDate":null,"type":"TS"},{"date":"2024-07-18","endDate":null,"type":"TS"}]},{"nameJa":"思慮深き座長","nameEn":"Thoughtful Director","season":"リズムが弾ける季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/2/27/Rhythm-Spirit-Thoughtful-Director.png","area":"Vault Rest","visits":[{"date":"2021-05-13","endDate":null,"type":"TS"},{"date":"2022-08-04","endDate":null,"type":"TS"},{"date":"2023-07-03","endDate":"2023-07-16","type":"SV"},{"date":"2024-06-20","endDate":null,"type":"TS"}]},{"nameJa":"飛び跳ねる舞踏家","nameEn":"Leaping Dancer","season":"感謝の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/a/ae/Gratitude-Spirit-Leaping-Dancer.png","area":"Frozen Lake","visits":[{"date":"2020-06-25","endDate":null,"type":"TS"},{"date":"2021-03-18","endDate":null,"type":"TS"},{"date":"2023-07-03","endDate":"2023-07-16","type":"SV"},{"date":"2024-06-06","endDate":null,"type":"TS"}]},{"nameJa":"ダブルタッチの光採取者","nameEn":"Doublefive Light Catcher","season":"光の探求者の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/9/97/Lightseekers-Spirit-Doublefive-Light-Catcher.png","area":"Bird Nest","visits":[{"date":"2020-02-14","endDate":null,"type":"TS"},{"date":"2021-04-15","endDate":null,"type":"TS"},{"date":"2022-07-21","endDate":null,"type":"TS"},{"date":"2024-05-23","endDate":null,"type":"TS"}]},{"nameJa":"引っ込み思案な読書家","nameEn":"Timid Bookworm","season":"楽園の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/5/51/Sanctuary-Spirit-Timid-Bookworm.png","area":"Sanctuary Islands","visits":[{"date":"2021-06-01","endDate":null,"type":"TS"},{"date":"2022-07-07","endDate":null,"type":"TS"},{"date":"2024-05-09","endDate":null,"type":"TS"}]},{"nameJa":"舞い踊る表現者","nameEn":"Dancing Performer","season":"夢かなう季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/9/9a/Dreams-Spirit-Dancing-Performer.png","area":"Village of Dreams","visits":[{"date":"2024-04-25","endDate":null,"type":"TS"}]},{"nameJa":"おませな漂流者","nameEn":"Sassy Drifter","season":"感謝の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/5/5d/Gratitude-Spirit-Sassy-Drifter.png","area":"Passage Rock","visits":[{"date":"2020-01-31","endDate":null,"type":"TS"},{"date":"2020-05-28","endDate":null,"type":"TS"},{"date":"2021-07-08","endDate":null,"type":"TS"},{"date":"2022-12-08","endDate":null,"type":"TS"},{"date":"2024-04-11","endDate":null,"type":"TS"}]},{"nameJa":"ぽんぽんする若者","nameEn":"Hairtousle Teen","season":"想いを編む季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/9/9f/Belonging-Spirit-Hairtousle-Teen.png","area":"Forest Cavern","visits":[{"date":"2020-06-11","endDate":null,"type":"TS"},{"date":"2022-06-09","endDate":null,"type":"TS"},{"date":"2024-03-28","endDate":null,"type":"TS"}]},{"nameJa":"無頓着な錬金術師","nameEn":"Indifferent Alchemist","season":"魔法の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/2/26/Enchantment-Spirit-Indifferent-Alchemist.png","area":"Forgotten Ark","visits":[{"date":"2020-10-29","endDate":null,"type":"TS"},{"date":"2022-09-01","endDate":null,"type":"TS"},{"date":"2024-03-04","endDate":"2024-03-17","type":"SV"}]},{"nameJa":"うなずく壁画師","nameEn":"Nodding Muralist","season":"魔法の季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/8/8e/Enchantment-Spirit-Nodding-Muralist.png","area":"Forgotten Ark","visits":[{"date":"2021-01-07","endDate":null,"type":"TS"},{"date":"2022-10-27","endDate":null,"type":"TS"},{"date":"2024-03-04","endDate":"2024-03-17","type":"SV"}]},{"nameJa":"祝祭の旋舞家","nameEn":"Festival Spin Dancer","season":"リズムが弾ける季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/3/35/Rhythm-Spirit-Festival-Spin-Dancer.png","area":"Bird Nest","visits":[{"date":"2020-09-03","endDate":null,"type":"TS"},{"date":"2021-10-14","endDate":null,"type":"TS"},{"date":"2023-12-21","endDate":null,"type":"TS"}]},{"nameJa":"腕利きの工匠","nameEn":"Talented Builder","season":"羽ばたく季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/a/ac/Flight-Spirit-Talented-Builder.png","area":"The Wind Paths","visits":[{"date":"2023-11-23","endDate":null,"type":"TS"}]},{"nameJa":"祖たる賢者","nameEn":"Wise Grandparent","season":"想いを編む季節","imageUrl":"https://static.wikia.nocookie.net/sky-children-of-the-light/images/2/2e/Belonging-Spirit-Wise-Grandpa.png","area":"Vault Archive","visits":[{"date":"2020-08-06","endDate":null,"type":"TS"},{"date":"2021-11-11","endDate":null,"type":"TS"},{"date":"2023-11-09","endDate":null,"type":"TS"}]}];
+
+const TYPE_LABEL = { 'TS': '来訪', 'SV': '特別来訪', 'TS-Error': 'エラー表示' };
+
+function formatDate(d) {
+  const dt = new Date(d + 'T00:00:00+09:00');
+  return `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}`;
+}
+
+function populateSeasonFilter() {
+  const seasons = [...new Set(REVISIT_DATA.map(s => s.season))];
+  const select = document.getElementById('seasonFilter');
+  seasons.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    select.appendChild(opt);
+  });
+}
+
+function renderList() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const seasonFilter = document.getElementById('seasonFilter').value;
+  const sortMode = document.getElementById('sortMode').value;
+
+  let list = REVISIT_DATA.filter(s => {
+    if (seasonFilter !== 'all' && s.season !== seasonFilter) return false;
+    if (!q) return true;
+    return s.nameJa.toLowerCase().includes(q) || s.nameEn.toLowerCase().includes(q);
+  });
+
+  if (sortMode === 'name') {
+    list = [...list].sort((a, b) => a.nameJa.localeCompare(b.nameJa, 'ja'));
+  } else if (sortMode === 'count') {
+    list = [...list].sort((a, b) => b.visits.length - a.visits.length);
+  } else {
+    list = [...list].sort((a, b) => b.visits[b.visits.length - 1].date.localeCompare(a.visits[a.visits.length - 1].date));
+  }
+
+  document.getElementById('filterStats').textContent = `${list.length} / ${REVISIT_DATA.length} 精霊`;
+
+  const container = document.getElementById('spiritList');
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-state">該当する精霊が見つかりませんでした</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(s => {
+    const chips = s.visits.map(v => {
+      const cls = v.type === 'SV' ? 'sv' : (v.type === 'TS-Error' ? 'err' : '');
+      const label = TYPE_LABEL[v.type] || v.type;
+      return `<span class="visit-chip ${cls}" title="${label}">${formatDate(v.date)}</span>`;
+    }).join('');
+    return `
+      <div class="spirit-card">
+        <div class="spirit-icon">
+          <img src="${s.imageUrl}" alt="${escapeHtml(s.nameJa)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+        </div>
+        <div class="spirit-body">
+          <div class="spirit-name-ja">${escapeHtml(s.nameJa)}</div>
+          <div class="spirit-name-en">${escapeHtml(s.nameEn)}</div>
+          <div class="spirit-meta">
+            <span class="spirit-badge">${escapeHtml(s.season)}</span>
+            <span class="spirit-badge area">${escapeHtml(s.area)}</span>
+          </div>
+          <div class="visit-list">${chips}</div>
+          <div class="visit-count">来訪 ${s.visits.length} 回</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('sidebar-open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+populateSeasonFilter();
+renderList();
+</script>
+
+</body>
+</html>
