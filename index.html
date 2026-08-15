@@ -232,6 +232,27 @@ const NEVER_REVISITED_DATA = [{"nameJa":"神聖な祖たる賢者","nameEn":"Div
 
 const TYPE_LABEL = { 'TS': '来訪', 'SV': '特別来訪', 'TS-Error': 'エラー表示' };
 
+// エリア名（英語→日本語）対応表。出典: Sky 星を紡ぐ子どもたち Wiki*（wikiwiki.jp/sky-jp）
+// および Sky: Children of the Light Wiki 日本語版（Fandom）の各地方ページ。
+const AREA_JA = {
+  'Village of Dreams': '夢見の町', 'Butterfly Fields': '蝶々の住処', 'The Wind Paths': '風の街道',
+  'Upper Vault': '書庫上層', 'Revival Season Shop': '復古の季節ショップ', 'Forgotten Ark': '忘れられた方舟',
+  'Frozen Lake': '凍った湖', 'Prairie Peaks': '草原連峰', 'Sanctuary Islands': '楽園の島々',
+  'Passage Rock': 'ならいの大岩', 'Treasure Reef': '秘宝の環礁', 'Boneyard': '雨林の墓場',
+  'Forest Courtyard': '雨林の前庭', 'Forest Brook': '雨林の小川', 'Temple of the Valley': '峡谷の神殿',
+  'Crab Fields': '蟹の沼地', 'Cave of Prophecies': '預言者の石窟', 'Village Theatre': '夢見の劇場',
+  'The Graveyard': '墓所', 'Repository of Refuge': '君憶う保存庫', 'Dawn Overlook': '孤島の見晴らし台',
+  'The Coliseum': '円形劇場', 'Prairie Cave': '草原の洞窟', 'Starlight Desert': '星月夜の砂漠',
+  'Starlight Desert Jar': '星月夜の砂漠（壺）', 'Jellyfish Beach': '海月の浜辺', 'Dawn Circle': '夜明けの円環',
+  'Temple of the Isle Entrance': '孤島の神殿（入口）', 'Void of Shattering': '砕ける闇の虚',
+  'Vault Rest': '書庫の交流広場', 'Bird Nest': '鳥の巣', 'Forest Cavern': '雨林の大空洞',
+  'Vault Archive': '資料庫', 'Blue Bird theater': '青い鳥劇場', 'Wandering Carnival': 'さすらいカーニバル',
+  'Starry Gallery': '星月夜の画廊', 'Concert Hall': 'コンサートホール', 'Fractured Lantern Storage': '壊れし燈の保管庫',
+  'Moominvalley Glade': 'ムーミン谷', 'Nesting Workshop': '巣づくり工房', 'Crescent Oasis': '三日月オアシス',
+  'Aviary Village': '花鳥郷', 'The Last City': '最後の街'
+};
+function areaJa(area) { return AREA_JA[area] || area; }
+
 // 季節の実装（リリース）順。spirit-catalogのSEASON_JA_MAPと同じ並びを流用。
 const SEASON_ORDER = [
   '感謝の季節', '光の探求者の季節', '想いを編む季節', 'リズムが弾ける季節', '魔法の季節',
@@ -321,7 +342,7 @@ function renderList() {
           <div class="spirit-name-en">${escapeHtml(s.nameEn)}</div>
           <div class="spirit-meta">
             <span class="spirit-badge">${escapeHtml(s.season)}</span>
-            <span class="spirit-badge area">${escapeHtml(s.area)}</span>
+            <span class="spirit-badge area">${escapeHtml(areaJa(s.area))}</span>
           </div>
           <div class="visit-list">${chips}</div>
           <div class="visit-count">来訪 ${s.visits.length} 回　・　最終来訪から ${daysSince(lastVisitEndDate(s))} 日</div>
