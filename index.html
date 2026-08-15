@@ -205,6 +205,16 @@ const REVISIT_DATA = [{"nameJa":"旋舞の師匠","nameEn":"Spinning Mentor","se
 
 const TYPE_LABEL = { 'TS': '来訪', 'SV': '特別来訪', 'TS-Error': 'エラー表示' };
 
+// 季節の実装（リリース）順。spirit-catalogのSEASON_JA_MAPと同じ並びを流用。
+const SEASON_ORDER = [
+  '感謝の季節', '光の探求者の季節', '想いを編む季節', 'リズムが弾ける季節', '魔法の季節',
+  '楽園の季節', '預言者の季節', '夢かなう季節', '大樹に集う季節', '星の王子さまの季節',
+  '羽ばたく季節', '深淵の季節', '表現者たちの季節', '砕ケル闇ノ季節', 'AURORAの季節',
+  '追慕の季節', 'ならいの季節', '瞬きの季節', '復古の季節', '九色の鹿の季節',
+  '巣づくりの季節', '重なる音色の季節', 'ムーミンの季節', '光に染まる季節', '青い鳥の季節',
+  'ふたつの灯火の季節　前編', '渡りの季節', '光の修繕者の季節', 'カーニバルの季節', 'ゴッホの季節'
+];
+
 function formatDate(d) {
   const dt = new Date(d + 'T00:00:00+09:00');
   return `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}`;
@@ -224,7 +234,13 @@ function daysSince(dateStr) {
 }
 
 function populateSeasonFilter() {
-  const seasons = [...new Set(REVISIT_DATA.map(s => s.season))];
+  const seasons = [...new Set(REVISIT_DATA.map(s => s.season))].sort((a, b) => {
+    const ia = SEASON_ORDER.indexOf(a), ib = SEASON_ORDER.indexOf(b);
+    if (ia === -1 && ib === -1) return a.localeCompare(b, 'ja');
+    if (ia === -1) return 1;
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
   const select = document.getElementById('seasonFilter');
   seasons.forEach(s => {
     const opt = document.createElement('option');
