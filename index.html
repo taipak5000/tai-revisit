@@ -170,6 +170,7 @@
         </select>
         <select class="filter-select" id="sortMode" onchange="renderList()">
           <option value="latest">最新の来訪順</option>
+          <option value="daysSince">最終来訪からの日数が長い順</option>
           <option value="name">精霊名順</option>
           <option value="count">来訪回数が多い順</option>
         </select>
@@ -209,6 +210,19 @@ function formatDate(d) {
   return `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}`;
 }
 
+// 最終来訪日（範囲のある特別来訪はendDateを終了日として優先）
+function lastVisitEndDate(s) {
+  const v = s.visits[s.visits.length - 1];
+  return v.endDate || v.date;
+}
+function daysSince(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const target = Date.UTC(y, m - 1, d);
+  const now = new Date();
+  const todayLocal = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.max(0, Math.round((todayLocal - target) / 86400000));
+}
+
 function populateSeasonFilter() {
   const seasons = [...new Set(REVISIT_DATA.map(s => s.season))];
   const select = document.getElementById('seasonFilter');
@@ -234,8 +248,10 @@ function renderList() {
     list = [...list].sort((a, b) => a.nameJa.localeCompare(b.nameJa, 'ja'));
   } else if (sortMode === 'count') {
     list = [...list].sort((a, b) => b.visits.length - a.visits.length);
+  } else if (sortMode === 'daysSince') {
+    list = [...list].sort((a, b) => lastVisitEndDate(a).localeCompare(lastVisitEndDate(b)));
   } else {
-    list = [...list].sort((a, b) => b.visits[b.visits.length - 1].date.localeCompare(a.visits[a.visits.length - 1].date));
+    list = [...list].sort((a, b) => lastVisitEndDate(b).localeCompare(lastVisitEndDate(a)));
   }
 
   document.getElementById('filterStats').textContent = `${list.length} / ${REVISIT_DATA.length} 精霊`;
@@ -265,7 +281,7 @@ function renderList() {
             <span class="spirit-badge area">${escapeHtml(s.area)}</span>
           </div>
           <div class="visit-list">${chips}</div>
-          <div class="visit-count">来訪 ${s.visits.length} 回</div>
+          <div class="visit-count">来訪 ${s.visits.length} 回　・　最終来訪から ${daysSince(lastVisitEndDate(s))} 日</div>
         </div>
       </div>`;
   }).join('');
