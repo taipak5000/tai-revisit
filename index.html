@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="再訪精霊DB">
   <meta name="theme-color" content="#32ADE6">
-  <title>再訪精霊データベース - Sky所持率管理</title>
+  <title id="pageTitleTag">再訪精霊データベース - Sky所持率管理</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -45,11 +45,13 @@
       display: flex; align-items: center; justify-content: space-between;
     }
     .nav-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
-    .sidebar-toggle-btn {
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+    .sidebar-toggle-btn, .lang-toggle-btn {
       background: var(--card); border: 1px solid var(--sep); border-radius: var(--r-sm);
       padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--text);
       display: flex; align-items: center; gap: 6px; white-space: nowrap;
     }
+    /* lang-toggle-btn intentionally excluded: unlike the hamburger, it stays visible at desktop width too */
     @media (min-width: 850px) { .sidebar-toggle-btn { visibility: hidden; } }
 
     .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 499; }
@@ -147,8 +149,11 @@
 <body>
 
 <nav>
-  <div class="nav-title">🕊️ 再訪精霊データベース</div>
-  <button class="sidebar-toggle-btn" onclick="toggleSidebar()">☰ ツール</button>
+  <div class="nav-title" data-i18n="navTitle">🕊️ 再訪精霊データベース</div>
+  <div class="nav-right">
+    <button class="lang-toggle-btn" id="langToggleBtn" onclick="toggleLang()">EN</button>
+    <button class="sidebar-toggle-btn" data-i18n="sidebarToggle" onclick="toggleSidebar()">☰ ツール</button>
+  </div>
 </nav>
 
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
@@ -156,38 +161,38 @@
 <div class="app-layout">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-head">
-      <div class="sidebar-section-label">🔗 関連ツール</div>
+      <div class="sidebar-section-label" data-i18n="relatedTools">🔗 関連ツール</div>
       <button class="sidebar-close-btn" onclick="toggleSidebar()">✕</button>
     </div>
-    <a href="https://taipak5000.github.io/tai-item/" class="sidebar-nav-link">🗂️ アイテム所持管理</a>
-    <a href="https://taipak5000.github.io/tai-emote/" class="sidebar-nav-link">🎭 エモート所持率管理</a>
-    <a href="https://taipak5000.github.io/share/" class="sidebar-nav-link">📍 創作物管理ツール</a>
-    <a href="https://taipak5000.github.io/tai-nomacan/" class="sidebar-nav-link">🕯️ ノマキャン計算機</a>
-    <a href="https://taipak5000.github.io/star-candle/" class="sidebar-nav-link">🕯️ 星のキャンドル計算機</a>
-    <a href="https://taipak5000.github.io/companion/" class="sidebar-nav-link">✨ 精霊同行ツール</a>
-    <a href="https://taipak5000.github.io/tai-catalog/" class="sidebar-nav-link">🌳 精霊ツリー管理</a>
-    <a href="https://taipak5000.github.io/wings/" class="sidebar-nav-link">🪽 羽トラッカー</a>
-    <a href="https://taipak5000.github.io/tai-transfer/" class="sidebar-nav-link">🔄 データ引継ぎ</a>
+    <a href="https://taipak5000.github.io/tai-item/" class="sidebar-nav-link" data-i18n="toolItem">🗂️ アイテム所持管理</a>
+    <a href="https://taipak5000.github.io/tai-emote/" class="sidebar-nav-link" data-i18n="toolEmote">🎭 エモート所持率管理</a>
+    <a href="https://taipak5000.github.io/share/" class="sidebar-nav-link" data-i18n="toolShare">📍 創作物管理ツール</a>
+    <a href="https://taipak5000.github.io/tai-nomacan/" class="sidebar-nav-link" data-i18n="toolNomacan">🕯️ ノマキャン計算機</a>
+    <a href="https://taipak5000.github.io/star-candle/" class="sidebar-nav-link" data-i18n="toolStarCandle">🕯️ 星のキャンドル計算機</a>
+    <a href="https://taipak5000.github.io/companion/" class="sidebar-nav-link" data-i18n="toolCompanion">✨ 精霊同行ツール</a>
+    <a href="https://taipak5000.github.io/tai-catalog/" class="sidebar-nav-link" data-i18n="toolCatalog">🌳 精霊ツリー管理</a>
+    <a href="https://taipak5000.github.io/wings/" class="sidebar-nav-link" data-i18n="toolWings">🪽 羽トラッカー</a>
+    <a href="https://taipak5000.github.io/tai-transfer/" class="sidebar-nav-link" data-i18n="toolTransfer">🔄 データ引継ぎ</a>
   </aside>
 
   <div class="wrap">
     <div class="card" style="margin-top:14px;">
-      <p>過去に来訪（Traveling Spirit）・特別来訪（Returning Spirits）した精霊の履歴を検索できる、閲覧専用の参考データベースです。所持チェックなどの記録機能はありません。データは
+      <p><span data-i18n="introPart1">過去に来訪（Traveling Spirit）・特別来訪（Returning Spirits）した精霊の履歴を検索できる、閲覧専用の参考データベースです。所持チェックなどの記録機能はありません。データは</span>
         <a href="https://github.com/Silverfeelin/SkyGame-Data" target="_blank" rel="noopener noreferrer">SkyGame-Data</a>
-        プロジェクトを基にしています。</p>
+        <span data-i18n="introPart2">プロジェクトを基にしています。</span></p>
     </div>
 
     <div class="filter-card">
       <div class="filter-row">
-        <input type="search" class="filter-search" id="searchInput" placeholder="🔍 精霊名で検索…" oninput="renderList()">
+        <input type="search" class="filter-search" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="🔍 精霊名で検索…" oninput="renderList()">
         <select class="filter-select" id="seasonFilter" onchange="renderList()">
-          <option value="all">すべての季節</option>
+          <option value="all" data-i18n="seasonAll">すべての季節</option>
         </select>
         <select class="filter-select" id="sortMode" onchange="renderList()">
-          <option value="latest">最新の来訪順</option>
-          <option value="daysSince">最終来訪からの日数が長い順</option>
-          <option value="name">精霊名順</option>
-          <option value="count">来訪回数が多い順</option>
+          <option value="latest" data-i18n="sortLatest">最新の来訪順</option>
+          <option value="daysSince" data-i18n="sortDaysSince">最終来訪からの日数が長い順</option>
+          <option value="name" data-i18n="sortName">精霊名順</option>
+          <option value="count" data-i18n="sortCount">来訪回数が多い順</option>
         </select>
       </div>
       <div class="filter-stats" id="filterStats"></div>
@@ -197,26 +202,32 @@
 
     <details class="collapse-section">
       <summary class="collapse-summary">
-        🕰️ まだ一度も再訪が来ていない精霊<span class="collapse-count" id="neverRevisitedCount"></span>
+        <span data-i18n="collapseSummary">🕰️ まだ一度も再訪が来ていない精霊</span><span class="collapse-count" id="neverRevisitedCount"></span>
       </summary>
-      <div class="collapse-note">季節精霊のうち、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度も来ていない精霊の一覧です。</div>
+      <div class="collapse-note" data-i18n="collapseNote">季節精霊のうち、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度も来ていない精霊の一覧です。</div>
       <div class="spirit-list" id="neverRevisitedList"><!-- JS --></div>
     </details>
   </div>
 </div>
 
 <footer>
-  このサイトはSky 星を紡ぐ子どもたちの非公式ファンサイトです。thatgamecompanyは一切関与していません。<br>
-  再訪履歴データ: <a href="https://github.com/Silverfeelin/SkyGame-Data" target="_blank" rel="noopener noreferrer">SkyGame-Data</a>（Silverfeelin氏、MIT License）／
-  精霊アイコン: © Sky: Children of the Light Icons by contributors of the Sky: Children of the Light wiki<br>
-  作成・ご意見: <a href="https://x.com/Skyzztai" target="_blank" rel="noopener noreferrer">@Skyzztai</a>　／
-  <a href="https://odaibako.net/u/Skyzztai" target="_blank" rel="noopener noreferrer">リクエストフォーム</a><br>
+  <span data-i18n="footerDisclaimer">このサイトはSky 星を紡ぐ子どもたちの非公式ファンサイトです。thatgamecompanyは一切関与していません。</span><br>
+  <span data-i18n="footerDataLabel">再訪履歴データ: </span><a href="https://github.com/Silverfeelin/SkyGame-Data" target="_blank" rel="noopener noreferrer">SkyGame-Data</a><span data-i18n="footerDataCredit">（Silverfeelin氏、MIT License）／</span>
+  <span data-i18n="footerIconLabel">精霊アイコン: </span>© Sky: Children of the Light Icons by contributors of the Sky: Children of the Light wiki<br>
+  <span data-i18n="footerCreditLabel">作成・ご意見: </span><a href="https://x.com/Skyzztai" target="_blank" rel="noopener noreferrer">@Skyzztai</a>　／
+  <a href="https://odaibako.net/u/Skyzztai" target="_blank" rel="noopener noreferrer" data-i18n="footerRequestForm">リクエストフォーム</a><br>
   <span style="font-size:12px; margin-top:4px; display:inline-block;">
-    <a href="https://taipak5000.github.io/tai-info/" target="_blank" rel="noopener noreferrer">⚙️ 設定・更新情報・クレジット・プライバシーポリシー</a>
+    <a href="https://taipak5000.github.io/tai-info/" target="_blank" rel="noopener noreferrer" data-i18n="footerInfoLink">⚙️ 設定・更新情報・クレジット・プライバシーポリシー</a>
   </span>
 </footer>
 
 <script>
+/* ================================================================
+   UI言語設定（'ja'|'en'、既定 'ja'）。sky_app_lang は taipak5000.github.io
+   系ツール共通のグローバルキー（プロフィール単位ではなく端末単位の設定）。
+   ================================================================ */
+let LANG = localStorage.getItem('sky_app_lang') || 'ja';
+
 /* ================================================================
    再訪精霊データ（92精霊・230件の来訪履歴、2020-01〜2026-08）
    出典: SkyGame-Data (https://github.com/Silverfeelin/SkyGame-Data)
@@ -238,7 +249,12 @@ function normalizeSearchText(str) {
   return String(str).toLowerCase().replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
 }
 
+// 来訪種別ラベル（言語別）。typeLabel()経由で参照する（TYPE_LABEL自体は直接参照しない）。
 const TYPE_LABEL = { 'TS': '来訪', 'SV': '特別来訪', 'TS-Error': 'エラー表示' };
+function typeLabel(type) {
+  const key = { 'TS': 'typeVisit', 'SV': 'typeReturning', 'TS-Error': 'typeError' }[type];
+  return key ? t(key) : (TYPE_LABEL[type] || type);
+}
 
 // エリア名（英語→日本語）対応表。出典: Sky 星を紡ぐ子どもたち Wiki*（wikiwiki.jp/sky-jp）
 // および Sky: Children of the Light Wiki 日本語版（Fandom）の各地方ページ。
@@ -276,6 +292,168 @@ const SEASON_ORDER = [
   'ふたつの灯火の季節　前編', '渡りの季節', '光の修繕者の季節', 'カーニバルの季節', 'ゴッホの季節'
 ];
 
+// 季節名（日本語→英語）対応表。SEASON_ORDERに登場する全季節を網羅した固定リスト。
+// 出典: Sky公式シーズン名（英語）。ja表示ではそのままs.seasonを使い、
+// en表示でのみseasonLabel()経由でこちらを参照する（areaJa()と対称の構成）。
+const SEASON_EN = {
+  '感謝の季節': 'Season of Gratitude',
+  '光の探求者の季節': 'Season of Lightseekers',
+  '想いを編む季節': 'Season of Belonging',
+  'リズムが弾ける季節': 'Season of Rhythm',
+  '魔法の季節': 'Season of Enchantment',
+  '楽園の季節': 'Season of Sanctuary',
+  '預言者の季節': 'Season of Prophecy',
+  '夢かなう季節': 'Season of Dreams',
+  '大樹に集う季節': 'Season of Assembly',
+  '星の王子さまの季節': 'Season of The Little Prince',
+  '羽ばたく季節': 'Season of Flight',
+  '深淵の季節': 'Season of Abyss',
+  '表現者たちの季節': 'Season of Performance',
+  '砕ケル闇ノ季節': 'Season of Shattering',
+  'AURORAの季節': 'Season of AURORA',
+  '追慕の季節': 'Season of Remembrance',
+  'ならいの季節': 'Season of Passage',
+  '瞬きの季節': 'Season of Moments',
+  '復古の季節': 'Season of Revival',
+  '九色の鹿の季節': 'Season of the Nine-Colored Deer',
+  '巣づくりの季節': 'Season of Nesting',
+  '重なる音色の季節': 'Season of Duets',
+  'ムーミンの季節': 'Season of Moomin',
+  '光に染まる季節': 'Season of Radiance',
+  '青い鳥の季節': 'Season of the Blue Bird',
+  'ふたつの灯火の季節　前編': 'Season of The Two Embers - Part 1',
+  '渡りの季節': 'Season of Migration',
+  '光の修繕者の季節': 'Season of Lightmending',
+  'カーニバルの季節': 'Season of Carnival',
+  'ゴッホの季節': 'Dear Van Gogh'
+};
+function seasonLabel(season) { return SEASON_EN[season] || season; }
+
+/* ================================================================
+   i18n: 静的UI文言の翻訳辞書 + 適用ロジック。
+   共通UI（サイドバー・関連ツールリンク・フッター等）はエコシステム
+   共通の英訳（canonical dictionary）に準拠。このサイト固有の文言はここで新規に翻訳。
+   ================================================================ */
+const I18N = {
+  ja: {
+    navTitle: '🕊️ 再訪精霊データベース',
+    sidebarToggle: '☰ ツール',
+    relatedTools: '🔗 関連ツール',
+    toolItem: '🗂️ アイテム所持管理',
+    toolEmote: '🎭 エモート所持率管理',
+    toolShare: '📍 創作物管理ツール',
+    toolNomacan: '🕯️ ノマキャン計算機',
+    toolStarCandle: '🕯️ 星のキャンドル計算機',
+    toolCompanion: '✨ 精霊同行ツール',
+    toolCatalog: '🌳 精霊ツリー管理',
+    toolWings: '🪽 羽トラッカー',
+    toolTransfer: '🔄 データ引継ぎ',
+    introPart1: '過去に来訪（Traveling Spirit）・特別来訪（Returning Spirits）した精霊の履歴を検索できる、閲覧専用の参考データベースです。所持チェックなどの記録機能はありません。データは',
+    introPart2: 'プロジェクトを基にしています。',
+    searchPlaceholder: '🔍 精霊名で検索…',
+    seasonAll: 'すべての季節',
+    sortLatest: '最新の来訪順',
+    sortDaysSince: '最終来訪からの日数が長い順',
+    sortName: '精霊名順',
+    sortCount: '来訪回数が多い順',
+    collapseSummary: '🕰️ まだ一度も再訪が来ていない精霊',
+    collapseNote: '季節精霊のうち、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度も来ていない精霊の一覧です。',
+    footerDisclaimer: 'このサイトはSky 星を紡ぐ子どもたちの非公式ファンサイトです。thatgamecompanyは一切関与していません。',
+    footerDataLabel: '再訪履歴データ: ',
+    footerDataCredit: '（Silverfeelin氏、MIT License）／',
+    footerIconLabel: '精霊アイコン: ',
+    footerCreditLabel: '作成・ご意見: ',
+    footerRequestForm: 'リクエストフォーム',
+    footerInfoLink: '⚙️ 設定・更新情報・クレジット・プライバシーポリシー',
+    filterStats: '{shown} / {total} 精霊',
+    emptyState: '該当する精霊が見つかりませんでした',
+    visitCountLine: '来訪 {count} 回　・　最終来訪から {days} 日',
+    treeLinkTitle: '精霊ツリー管理でツリー開放状況を見る',
+    neverRevisitedCount: '（{n}）',
+    typeVisit: '来訪',
+    typeReturning: '特別来訪',
+    typeError: 'エラー表示',
+    pageTitle: '再訪精霊データベース - Sky所持率管理'
+  },
+  en: {
+    navTitle: '🕊️ Revisit Spirit Database',
+    sidebarToggle: '☰ Tools',
+    relatedTools: '🔗 Related Tools',
+    toolItem: '🗂️ Item Collection',
+    toolEmote: '🎭 Emote Collection',
+    toolShare: '📍 Creation Manager',
+    toolNomacan: '🕯️ Nomacan Calculator',
+    toolStarCandle: '🕯️ Star Candle Calculator',
+    toolCompanion: '✨ Spirit Companion Tool',
+    toolCatalog: '🌳 Spirit Tree Manager',
+    toolWings: '🪽 Wing Tracker',
+    toolTransfer: '🔄 Data Transfer',
+    introPart1: 'A read-only reference database for looking up the visit history of Traveling Spirits and Returning Spirits. There is no ownership-tracking feature here. Data is based on the',
+    introPart2: ' project.',
+    searchPlaceholder: '🔍 Search by spirit name…',
+    seasonAll: 'All Seasons',
+    sortLatest: 'Most Recent Visit',
+    sortDaysSince: 'Longest Since Last Visit',
+    sortName: 'Spirit Name',
+    sortCount: 'Most Visits',
+    collapseSummary: '🕰️ Never-Revisited Spirits',
+    collapseNote: 'Seasonal spirits that have never had a Traveling Spirit or Returning Spirits visit.',
+    footerDisclaimer: 'This is an unofficial fan site for Sky: Children of the Light. thatgamecompany is not involved in any way.',
+    footerDataLabel: 'Revisit history data: ',
+    footerDataCredit: ' (by Silverfeelin, MIT License) / ',
+    footerIconLabel: 'Spirit icons: ',
+    footerCreditLabel: 'Created by / feedback: ',
+    footerRequestForm: 'Request form',
+    footerInfoLink: "⚙️ Settings / What's New / Credits / Privacy Policy",
+    filterStats: '{shown} / {total} spirits',
+    emptyState: 'No matching spirits found',
+    visitCountLine: 'Visited {count}× · {days}d since last visit',
+    treeLinkTitle: 'View tree unlock status in Spirit Tree Manager',
+    neverRevisitedCount: '({n})',
+    typeVisit: 'Visit',
+    typeReturning: 'Returning Spirits',
+    typeError: 'Display Error',
+    pageTitle: 'Revisit Spirit Database - Sky Collection Tracker'
+  }
+};
+
+function t(key, vars) {
+  let str = (I18N[LANG] && I18N[LANG][key] !== undefined) ? I18N[LANG][key] : key;
+  if (vars) {
+    Object.keys(vars).forEach(k => { str = str.split('{' + k + '}').join(vars[k]); });
+  }
+  return str;
+}
+
+function applyI18n() {
+  document.documentElement.lang = LANG;
+  const titleTag = document.getElementById('pageTitleTag');
+  if (titleTag) titleTag.textContent = t('pageTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (I18N[LANG][key] !== undefined) el.textContent = I18N[LANG][key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (I18N[LANG][key] !== undefined) el.placeholder = I18N[LANG][key];
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    if (I18N[LANG][key] !== undefined) el.title = I18N[LANG][key];
+  });
+  const langBtn = document.getElementById('langToggleBtn');
+  if (langBtn) langBtn.textContent = LANG === 'ja' ? 'EN' : '日本語';
+}
+
+function toggleLang() {
+  LANG = LANG === 'ja' ? 'en' : 'ja';
+  localStorage.setItem('sky_app_lang', LANG);
+  applyI18n();
+  populateSeasonFilter();
+  renderList();
+  renderNeverRevisited();
+}
+
 function formatDate(d) {
   const dt = new Date(d + 'T00:00:00+09:00');
   return `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}`;
@@ -303,11 +481,16 @@ function populateSeasonFilter() {
     return ia - ib;
   });
   const select = document.getElementById('seasonFilter');
+  const prevValue = select.value;
+  // 'all'オプション（先頭）以外を毎回作り直す（言語切替時の再呼び出しに対応）
+  while (select.options.length > 1) select.remove(1);
   seasons.forEach(s => {
     const opt = document.createElement('option');
-    opt.value = s; opt.textContent = s;
+    opt.value = s; opt.textContent = LANG === 'en' ? seasonLabel(s) : s;
     select.appendChild(opt);
   });
+  // 値（生の日本語季節名）は言語に関わらず不変なので、選択状態を復元する
+  if (prevValue && seasons.includes(prevValue)) select.value = prevValue;
 }
 
 function renderList() {
@@ -332,18 +515,18 @@ function renderList() {
     list = [...list].sort((a, b) => lastVisitEndDate(b).localeCompare(lastVisitEndDate(a)));
   }
 
-  document.getElementById('filterStats').textContent = `${list.length} / ${REVISIT_DATA.length} 精霊`;
+  document.getElementById('filterStats').textContent = t('filterStats', { shown: list.length, total: REVISIT_DATA.length });
 
   const container = document.getElementById('spiritList');
   if (list.length === 0) {
-    container.innerHTML = '<div class="empty-state">該当する精霊が見つかりませんでした</div>';
+    container.innerHTML = `<div class="empty-state">${t('emptyState')}</div>`;
     return;
   }
 
   container.innerHTML = list.map(s => {
     const chips = s.visits.map(v => {
       const cls = v.type === 'SV' ? 'sv' : (v.type === 'TS-Error' ? 'err' : '');
-      const label = TYPE_LABEL[v.type] || v.type;
+      const label = typeLabel(v.type);
       return `<span class="visit-chip ${cls}" title="${label}">${formatDate(v.date)}</span>`;
     }).join('');
     return `
@@ -352,14 +535,14 @@ function renderList() {
           <img src="${s.imageUrl}" alt="${escapeHtml(s.nameJa)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
         </div>
         <div class="spirit-body">
-          <a class="spirit-name-ja spirit-name-link" href="${spiritCatalogLink(s.nameJa)}" target="_blank" rel="noopener noreferrer" title="精霊ツリー管理でツリー開放状況を見る">${escapeHtml(s.nameJa)}</a>
+          <a class="spirit-name-ja spirit-name-link" href="${spiritCatalogLink(s.nameJa)}" target="_blank" rel="noopener noreferrer" title="${t('treeLinkTitle')}">${escapeHtml(s.nameJa)}</a>
           <div class="spirit-name-en">${escapeHtml(s.nameEn)}</div>
           <div class="spirit-meta">
-            <span class="spirit-badge">${escapeHtml(s.season)}</span>
-            <span class="spirit-badge area">${escapeHtml(areaJa(s.area))}</span>
+            <span class="spirit-badge">${escapeHtml(LANG === 'en' ? seasonLabel(s.season) : s.season)}</span>
+            <span class="spirit-badge area">${escapeHtml(LANG === 'en' ? s.area : areaJa(s.area))}</span>
           </div>
           <div class="visit-list">${chips}</div>
-          <div class="visit-count">来訪 ${s.visits.length} 回　・　最終来訪から ${daysSince(lastVisitEndDate(s))} 日</div>
+          <div class="visit-count">${t('visitCountLine', { count: s.visits.length, days: daysSince(lastVisitEndDate(s)) })}</div>
         </div>
       </div>`;
   }).join('');
@@ -372,7 +555,7 @@ function renderNeverRevisited() {
     return a.nameJa.localeCompare(b.nameJa, 'ja');
   });
 
-  document.getElementById('neverRevisitedCount').textContent = `（${list.length}）`;
+  document.getElementById('neverRevisitedCount').textContent = t('neverRevisitedCount', { n: list.length });
 
   document.getElementById('neverRevisitedList').innerHTML = list.map(s => `
     <div class="spirit-card">
@@ -382,11 +565,11 @@ function renderNeverRevisited() {
           : '🕊️'}
       </div>
       <div class="spirit-body">
-        <a class="spirit-name-ja spirit-name-link" href="${spiritCatalogLink(s.nameJa)}" target="_blank" rel="noopener noreferrer" title="精霊ツリー管理でツリー開放状況を見る">${escapeHtml(s.nameJa)}</a>
+        <a class="spirit-name-ja spirit-name-link" href="${spiritCatalogLink(s.nameJa)}" target="_blank" rel="noopener noreferrer" title="${t('treeLinkTitle')}">${escapeHtml(s.nameJa)}</a>
         <div class="spirit-name-en">${escapeHtml(s.nameEn)}</div>
         <div class="spirit-meta">
-          <span class="spirit-badge">${escapeHtml(s.season)}</span>
-          <span class="spirit-badge area">${escapeHtml(s.area)}</span>
+          <span class="spirit-badge">${escapeHtml(LANG === 'en' ? seasonLabel(s.season) : s.season)}</span>
+          <span class="spirit-badge area">${escapeHtml(LANG === 'en' ? s.area : areaJa(s.area))}</span>
         </div>
       </div>
     </div>`).join('');
@@ -403,6 +586,7 @@ function toggleSidebar() {
   document.getElementById('sidebarOverlay').classList.toggle('show');
 }
 
+applyI18n();
 populateSeasonFilter();
 renderList();
 renderNeverRevisited();
