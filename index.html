@@ -9,6 +9,21 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="再訪精霊DB">
   <meta name="theme-color" content="#32ADE6">
+  <script>
+    // 🌓 描画前にテーマを確定させ、ダークモード時に一瞬でも明るい背景が
+    // 表示されてしまう「ちらつき」を防止する（下の<style>が評価される前に同期実行）。
+    // sky_app_theme は taipak5000.github.io 系ツール共通のグローバルキー
+    // （sky_app_lang と同様、プロフィール単位ではなく端末単位の設定）。
+    (function () {
+      try {
+        var saved = localStorage.getItem('sky_app_theme');
+        var isDark = saved ? (saved === 'dark') : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
   <title id="pageTitleTag">再訪精霊データベース - Sky所持率管理</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -28,6 +43,21 @@
       --r-sm:      10px;
     }
 
+    /* 🌙 ダークモード用のカラー上書き（:root の上に重ねる。ライト側の値は変更しない）。
+       --cyan-d と --cyan-bg は暗い背景でのコントラスト確保のため明るめに調整、
+       アクセントの色相（シアン）自体は変更していない。 */
+    [data-theme="dark"] {
+      --bg:        #000000;
+      --card:      #1C1C1E;
+      --sep:       rgba(255,255,255,0.14);
+      --cyan-d:    #64D2FF;
+      --cyan-bg:   rgba(50,173,230,0.18);
+      --green:     #30D158;
+      --text:      #F2F2F7;
+      --text-2:    #98989D;
+      --text-3:    #636366;
+    }
+
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
     a { text-decoration:none; color:inherit; -webkit-tap-highlight-color:transparent; }
     button { cursor:pointer; border:none; background:none; font-family:inherit; }
@@ -44,14 +74,17 @@
       border-bottom: 0.5px solid var(--sep); padding: 14px 20px 12px;
       display: flex; align-items: center; justify-content: space-between;
     }
+    /* navの半透明背景は var(--bg) と連動していない直書きの色なので、ダークモード用に別途上書きする */
+    [data-theme="dark"] nav { background: rgba(0,0,0,0.80); }
     .nav-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
     .nav-right { display: flex; align-items: center; gap: 8px; }
-    .sidebar-toggle-btn, .lang-toggle-btn {
+    .sidebar-toggle-btn, .lang-toggle-btn, .settings-toggle-btn {
       background: var(--card); border: 1px solid var(--sep); border-radius: var(--r-sm);
       padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--text);
       display: flex; align-items: center; gap: 6px; white-space: nowrap;
     }
-    /* lang-toggle-btn intentionally excluded: unlike the hamburger, it stays visible at desktop width too */
+    .settings-toggle-btn { font-size: 15px; padding: 6px 10px; line-height: 1; }
+    /* lang-toggle-btn / settings-toggle-btn intentionally excluded: unlike the hamburger, they stay visible at desktop width too */
     @media (min-width: 850px) { .sidebar-toggle-btn { visibility: hidden; } }
 
     .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 499; }
@@ -123,6 +156,8 @@
     .visit-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
     .visit-chip { font-size: 11px; font-variant-numeric: tabular-nums; padding: 3px 8px; border-radius: 6px; background: var(--bg); color: var(--text); white-space: nowrap; }
     .visit-chip.sv { background: rgba(52,199,89,0.12); color: #248A3D; }
+    /* --green var非経由の直書き色のため、ダークモードでのコントラスト確保用に別途上書き（色相は同じ緑のまま） */
+    [data-theme="dark"] .visit-chip.sv { background: rgba(48,209,88,0.18); color: var(--green); }
     .visit-chip.err { background: rgba(255,59,48,0.10); color: var(--red); }
     .visit-count { font-size: 11px; color: var(--text-2); margin-top: 6px; }
 
@@ -142,6 +177,41 @@
     .collapse-section .spirit-list { margin-top: 12px; }
     .spirit-icon.no-image { display: flex; align-items: center; justify-content: center; font-size: 22px; opacity: 0.5; }
 
+    /* ── ⚙️ 表示設定モーダル（ダークモード切替・キーボードショートカット） ───────── */
+    .settings-modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 600;
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    .settings-modal-overlay.show { display: flex; }
+    .settings-modal-card {
+      background: var(--card); border-radius: var(--r); padding: 20px;
+      width: 100%; max-width: 380px; max-height: calc(100vh - 40px); overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .settings-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .settings-modal-head h3 { font-size: 17px; font-weight: 700; color: var(--text); }
+    .settings-modal-close-btn { font-size: 20px; color: var(--text-2); line-height: 1; padding: 2px; }
+    .settings-section { margin-bottom: 18px; }
+    .settings-section:last-child { margin-bottom: 0; }
+    .settings-section-label {
+      font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase;
+      margin-bottom: 8px; display: flex; align-items: center; gap: 5px;
+    }
+    .settings-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
+    .settings-row-text { flex: 1; font-size: 13.5px; color: var(--text); }
+    .settings-theme-btn {
+      background: var(--bg); border: 1px solid var(--sep); border-radius: var(--r-sm);
+      padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap;
+    }
+    .settings-row input[type="checkbox"] { width: 19px; height: 19px; flex-shrink: 0; cursor: pointer; accent-color: var(--cyan); }
+    .settings-key-row { padding: 5px 0; }
+    .settings-key-row .settings-row-text { font-size: 12.5px; color: var(--text-2); }
+    .settings-key {
+      flex-shrink: 0; min-width: 30px; text-align: center; font-weight: 700;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px;
+      background: var(--bg); border: 1px solid var(--sep); border-radius: 5px; padding: 2px 6px; color: var(--text);
+    }
+
     footer { text-align: center; padding: 24px 16px; color: var(--text-2); font-size: 13px; border-top: 1px solid var(--sep); margin-top: 40px; line-height: 1.6; }
     footer a { color: var(--cyan-d); text-decoration: none; }
   </style>
@@ -152,11 +222,49 @@
   <div class="nav-title" data-i18n="navTitle">🕊️ 再訪精霊データベース</div>
   <div class="nav-right">
     <button class="lang-toggle-btn" id="langToggleBtn" onclick="toggleLang()">EN</button>
+    <button class="settings-toggle-btn" id="settingsToggleBtn" onclick="settingsOpen()" data-i18n-title="settingsTitle" title="⚙️ 表示設定">⚙️</button>
     <button class="sidebar-toggle-btn" data-i18n="sidebarToggle" onclick="toggleSidebar()">☰ ツール</button>
   </div>
 </nav>
 
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="settings-modal-overlay" id="settingsModalOverlay" onclick="if (event.target === this) settingsClose();">
+  <div class="settings-modal-card" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+    <div class="settings-modal-head">
+      <h3 id="settingsModalTitle" data-i18n="settingsTitle">⚙️ 表示設定</h3>
+      <button class="settings-modal-close-btn" onclick="settingsClose()">✕</button>
+    </div>
+
+    <div class="settings-section">
+      <p class="settings-section-label" data-i18n="settingsDisplayLabel">🌙 表示</p>
+      <div class="settings-row">
+        <span class="settings-row-text" data-i18n="settingsDarkModeLabel">ダークモード</span>
+        <button type="button" class="settings-theme-btn" id="settingsThemeBtn" onclick="toggleTheme()"></button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <p class="settings-section-label" data-i18n="settingsShortcutsLabel">⌨️ キーボードショートカット</p>
+      <div class="settings-row">
+        <span class="settings-row-text" data-i18n="settingsShortcutsEnableLabel">ショートカットを有効にする</span>
+        <input type="checkbox" id="settingsShortcutsToggle" onchange="settingsSaveShortcutsPref()">
+      </div>
+      <div class="settings-row settings-key-row">
+        <span class="settings-key">?</span>
+        <span class="settings-row-text" data-i18n="settingsShortcutOpen">この設定を開く</span>
+      </div>
+      <div class="settings-row settings-key-row">
+        <span class="settings-key">D</span>
+        <span class="settings-row-text" data-i18n="settingsShortcutTheme">ダークモード切替</span>
+      </div>
+      <div class="settings-row settings-key-row">
+        <span class="settings-key">Esc</span>
+        <span class="settings-row-text" data-i18n="settingsShortcutEscape">開いているウィンドウを閉じる</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="app-layout">
   <aside class="sidebar" id="sidebar">
@@ -373,7 +481,17 @@ const I18N = {
     typeVisit: '来訪',
     typeReturning: '特別来訪',
     typeError: 'エラー表示',
-    pageTitle: '再訪精霊データベース - Sky所持率管理'
+    pageTitle: '再訪精霊データベース - Sky所持率管理',
+    settingsTitle: '⚙️ 表示設定',
+    settingsDisplayLabel: '🌙 表示',
+    settingsDarkModeLabel: 'ダークモード',
+    settingsShortcutsLabel: '⌨️ キーボードショートカット',
+    settingsShortcutsEnableLabel: 'ショートカットを有効にする',
+    settingsShortcutOpen: 'この設定を開く',
+    settingsShortcutTheme: 'ダークモード切替',
+    settingsShortcutEscape: '開いているウィンドウを閉じる',
+    themeDark: '🌙 ダーク',
+    themeLight: '☀️ ライト'
   },
   en: {
     navTitle: '🕊️ Revisit Spirit Database',
@@ -413,7 +531,17 @@ const I18N = {
     typeVisit: 'Visit',
     typeReturning: 'Returning Spirits',
     typeError: 'Display Error',
-    pageTitle: 'Revisit Spirit Database - Sky Collection Tracker'
+    pageTitle: 'Revisit Spirit Database - Sky Collection Tracker',
+    settingsTitle: '⚙️ Display Settings',
+    settingsDisplayLabel: '🌙 Display',
+    settingsDarkModeLabel: 'Dark Mode',
+    settingsShortcutsLabel: '⌨️ Keyboard Shortcuts',
+    settingsShortcutsEnableLabel: 'Enable keyboard shortcuts',
+    settingsShortcutOpen: 'Open this settings panel',
+    settingsShortcutTheme: 'Toggle dark mode',
+    settingsShortcutEscape: 'Close the open window',
+    themeDark: '🌙 Dark',
+    themeLight: '☀️ Light'
   }
 };
 
@@ -449,6 +577,7 @@ function toggleLang() {
   LANG = LANG === 'ja' ? 'en' : 'ja';
   localStorage.setItem('sky_app_lang', LANG);
   applyI18n();
+  applyThemeToDOM(); // ダーク/ライト表示ボタンの文言（言語依存）を更新
   populateSeasonFilter();
   renderList();
   renderNeverRevisited();
@@ -586,7 +715,85 @@ function toggleSidebar() {
   document.getElementById('sidebarOverlay').classList.toggle('show');
 }
 
+/* ================================================================
+   🌙 ダークモード（sky_app_theme）／⌨️ キーボードショートカット
+   （sky_shortcuts_enabled）。どちらも taipak5000.github.io 系ツール共通の
+   グローバルキー（sky_app_lang と同様、端末単位でプロフィール非依存）。
+   data-theme属性自体は<head>内の同期スクリプトで初期化済み。
+   ================================================================ */
+function isDarkMode() {
+  return document.documentElement.getAttribute('data-theme') === 'dark';
+}
+
+function applyThemeToDOM() {
+  const btn = document.getElementById('settingsThemeBtn');
+  if (btn) btn.textContent = t(isDarkMode() ? 'themeDark' : 'themeLight');
+}
+
+function toggleTheme() {
+  const nowDark = !isDarkMode();
+  document.documentElement.setAttribute('data-theme', nowDark ? 'dark' : 'light');
+  try { localStorage.setItem('sky_app_theme', nowDark ? 'dark' : 'light'); } catch (e) {}
+  applyThemeToDOM();
+}
+
+function skyShortcutsEnabled() {
+  const v = localStorage.getItem('sky_shortcuts_enabled');
+  return v === null ? true : v === '1';
+}
+
+function settingsSaveShortcutsPref() {
+  const checked = document.getElementById('settingsShortcutsToggle').checked;
+  try { localStorage.setItem('sky_shortcuts_enabled', checked ? '1' : '0'); } catch (e) {}
+}
+
+function settingsOpen() {
+  document.getElementById('settingsShortcutsToggle').checked = skyShortcutsEnabled();
+  applyThemeToDOM();
+  document.getElementById('settingsModalOverlay').classList.add('show');
+}
+
+function settingsClose() {
+  document.getElementById('settingsModalOverlay').classList.remove('show');
+}
+
+// Escapeで閉じるべき「現在開いているウィンドウ」の優先順位（設定モーダル→サイドバー）。
+// このサイトにはこの2つ以外に開閉するUIが存在しない。
+function closeTopmostOpenModal() {
+  if (document.getElementById('settingsModalOverlay').classList.contains('show')) {
+    settingsClose();
+    return;
+  }
+  if (document.getElementById('sidebar').classList.contains('sidebar-open')) {
+    toggleSidebar();
+    return;
+  }
+}
+
+// ⌨️ 全ツール共通のキーボードショートカット（?＝表示設定を開く／d,D＝ダークモード切替／
+// Esc＝開いているウィンドウを閉じる）。Escはテキスト入力中でも常に有効（かつ
+// sky_shortcuts_enabledの無効化対象外）。?とdは、テキスト入力中は通常の文字入力として
+// 使えるようガードする。
+document.addEventListener('keydown', function (e) {
+  if (e.repeat) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const tgt = e.target;
+  const isTyping = tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.tagName === 'SELECT' || tgt.isContentEditable);
+
+  if (e.key === 'Escape') {
+    closeTopmostOpenModal();
+    return;
+  }
+
+  if (isTyping) return;
+  if (!skyShortcutsEnabled()) return;
+
+  if (e.key === '?') { e.preventDefault(); settingsOpen(); return; }
+  if (e.key === 'd' || e.key === 'D') { e.preventDefault(); toggleTheme(); return; }
+});
+
 applyI18n();
+applyThemeToDOM();
 populateSeasonFilter();
 renderList();
 renderNeverRevisited();
