@@ -65,7 +65,9 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-      background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 60px;
+      background: var(--bg); color: var(--text); min-height: 100vh;
+      /* 60px → 下部固定のsite-dock（約64-70px高）に本文が隠れないよう拡張 */
+      padding-bottom: calc(76px + env(safe-area-inset-bottom));
     }
 
     nav {
@@ -214,6 +216,29 @@
 
     footer { text-align: center; padding: 24px 16px; color: var(--text-2); font-size: 13px; border-top: 1px solid var(--sep); margin-top: 40px; line-height: 1.6; }
     footer a { color: var(--cyan-d); text-decoration: none; }
+
+    /* ── 🧭 site-dock: ページ下部固定のクイックアクセスバー（ハンバーガーサイドバーと併存） ──
+       セレクタは `nav.site-dock`（要素+クラス）にして、汎用の `nav { position:sticky; top:0; ... }`
+       ルール（上部ナビ用）とのカスケード衝突を避ける。.site-dockだけだと top:0 が上書きされずに
+       残り、position:fixed; top:0; bottom:0 で高さが画面いっぱいに伸びてしまう
+       （ダークモード時の `[data-theme="dark"] nav` 背景色上書きも同様に詳細度で負けるため、
+       ここで明示的に上書きする）。 */
+    nav.site-dock {
+      display: flex; position: fixed; left: 0; right: 0; top: auto; bottom: 0; z-index: 90;
+      padding: 6px 10px calc(8px + env(safe-area-inset-bottom));
+      background: var(--card);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-top: 0.5px solid var(--sep); border-bottom: none;
+      justify-content: space-around; align-items: stretch; gap: 4px;
+    }
+    .site-dock button {
+      flex: 1 1 0; max-width: 110px; border: 0; background: none; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 6px 0; min-height: 52px; border-radius: 12px; font-family: inherit;
+    }
+    .site-dock button:active { background: var(--sep); }
+    .site-dock .site-dock-icon { font-size: 20px; line-height: 1; }
+    .site-dock .site-dock-label { font-size: 10px; font-weight: 700; color: var(--text-2); }
   </style>
 </head>
 <body>
@@ -308,7 +333,7 @@
 
     <div class="spirit-list" id="spiritList"><!-- JS --></div>
 
-    <details class="collapse-section">
+    <details class="collapse-section" id="neverRevisitedSection">
       <summary class="collapse-summary">
         <span data-i18n="collapseSummary">🕰️ まだ一度も再訪が来ていない精霊</span><span class="collapse-count" id="neverRevisitedCount"></span>
       </summary>
@@ -328,6 +353,25 @@
     <a href="https://taipak5000.github.io/tai-info/" target="_blank" rel="noopener noreferrer" data-i18n="footerInfoLink">⚙️ 設定・更新情報・クレジット・プライバシーポリシー</a>
   </span>
 </footer>
+
+<nav class="site-dock" aria-label="クイックメニュー">
+  <button type="button" onclick="dockFocusSearch()">
+    <span class="site-dock-icon">🔍</span>
+    <span class="site-dock-label" data-i18n="dockSearch">検索</span>
+  </button>
+  <button type="button" onclick="dockOpenNeverRevisited()">
+    <span class="site-dock-icon">🕰️</span>
+    <span class="site-dock-label" data-i18n="dockUnvisited">未再訪</span>
+  </button>
+  <button type="button" onclick="toggleSidebar()">
+    <span class="site-dock-icon">☰</span>
+    <span class="site-dock-label" data-i18n="dockTools">他のツール</span>
+  </button>
+  <button type="button" onclick="settingsOpen()">
+    <span class="site-dock-icon">⚙️</span>
+    <span class="site-dock-label" data-i18n="dockSettings">表示設定</span>
+  </button>
+</nav>
 
 <script>
 /* ================================================================
@@ -491,7 +535,11 @@ const I18N = {
     settingsShortcutTheme: 'ダークモード切替',
     settingsShortcutEscape: '開いているウィンドウを閉じる',
     themeDark: '🌙 ダーク',
-    themeLight: '☀️ ライト'
+    themeLight: '☀️ ライト',
+    dockSearch: '検索',
+    dockUnvisited: '未再訪',
+    dockTools: '他のツール',
+    dockSettings: '表示設定'
   },
   en: {
     navTitle: '🕊️ Revisit Spirit Database',
@@ -541,7 +589,11 @@ const I18N = {
     settingsShortcutTheme: 'Toggle dark mode',
     settingsShortcutEscape: 'Close the open window',
     themeDark: '🌙 Dark',
-    themeLight: '☀️ Light'
+    themeLight: '☀️ Light',
+    dockSearch: 'Search',
+    dockUnvisited: 'Unvisited',
+    dockTools: 'Other Tools',
+    dockSettings: 'Display Settings'
   }
 };
 
@@ -713,6 +765,24 @@ function escapeHtml(str) {
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('sidebar-open');
   document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+/* ================================================================
+   🧭 site-dock（下部固定クイックアクセスバー）のボタン動作。
+   「他のツール」「表示設定」は既存のtoggleSidebar()/settingsOpen()をそのまま呼ぶ
+   （サイドバーのリンク一覧はここでは複製・再構築しない）。
+   ================================================================ */
+function dockFocusSearch() {
+  const input = document.getElementById('searchInput');
+  // block:'nearest' なので、既に画面内にあれば余計なスクロールは発生しない
+  input.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  input.focus();
+}
+
+function dockOpenNeverRevisited() {
+  const section = document.getElementById('neverRevisitedSection');
+  section.open = true;
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /* ================================================================
