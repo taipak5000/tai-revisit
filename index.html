@@ -219,6 +219,11 @@
       padding: 7px 10px; font-size: 13px; font-weight: 600; color: var(--text); text-align: center;
     }
     .settings-lang-btn.active { background: var(--cyan-bg); border-color: var(--cyan); color: var(--cyan-d); }
+    .settings-close-btn {
+      display: block; width: 100%; margin-top: 18px; background: var(--bg); border: 1px solid var(--sep);
+      border-radius: var(--r-sm); padding: 10px; font-size: 14px; font-weight: 600; color: var(--text);
+      text-align: center; cursor: pointer;
+    }
 
     footer { text-align: center; padding: 24px 16px; color: var(--text-2); font-size: 13px; border-top: 1px solid var(--sep); margin-top: 40px; line-height: 1.6; }
     footer a { color: var(--cyan-d); text-decoration: none; }
@@ -302,6 +307,8 @@
         <button type="button" class="settings-lang-btn" id="settingsLangEnBtn" onclick="setLang('en')">English</button>
       </div>
     </div>
+
+    <button type="button" class="settings-close-btn" onclick="settingsClose()" data-i18n="settingsCloseBtn">閉じる</button>
   </div>
 </div>
 
@@ -549,6 +556,7 @@ const I18N = {
     settingsShortcutTheme: 'ダークモード切替',
     settingsShortcutEscape: '開いているウィンドウを閉じる',
     settingsLangLabel: '🌐 言語 / Language',
+    settingsCloseBtn: '閉じる',
     themeDark: '🌙 ダーク',
     themeLight: '☀️ ライト',
     dockSearch: '検索',
@@ -604,6 +612,7 @@ const I18N = {
     settingsShortcutTheme: 'Toggle dark mode',
     settingsShortcutEscape: 'Close the open window',
     settingsLangLabel: '🌐 Language',
+    settingsCloseBtn: 'Close',
     themeDark: '🌙 Dark',
     themeLight: '☀️ Light',
     dockSearch: 'Search',
