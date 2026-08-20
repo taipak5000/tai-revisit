@@ -213,6 +213,12 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px;
       background: var(--bg); border: 1px solid var(--sep); border-radius: 5px; padding: 2px 6px; color: var(--text);
     }
+    .settings-lang-row { gap: 8px; }
+    .settings-lang-btn {
+      flex: 1; background: var(--bg); border: 1.5px solid var(--sep); border-radius: var(--r-sm);
+      padding: 7px 10px; font-size: 13px; font-weight: 600; color: var(--text); text-align: center;
+    }
+    .settings-lang-btn.active { background: var(--cyan-bg); border-color: var(--cyan); color: var(--cyan-d); }
 
     footer { text-align: center; padding: 24px 16px; color: var(--text-2); font-size: 13px; border-top: 1px solid var(--sep); margin-top: 40px; line-height: 1.6; }
     footer a { color: var(--cyan-d); text-decoration: none; }
@@ -286,6 +292,14 @@
       <div class="settings-row settings-key-row">
         <span class="settings-key">Esc</span>
         <span class="settings-row-text" data-i18n="settingsShortcutEscape">開いているウィンドウを閉じる</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <p class="settings-section-label" data-i18n="settingsLangLabel">🌐 言語 / Language</p>
+      <div class="settings-row settings-lang-row">
+        <button type="button" class="settings-lang-btn" id="settingsLangJaBtn" onclick="setLang('ja')">日本語</button>
+        <button type="button" class="settings-lang-btn" id="settingsLangEnBtn" onclick="setLang('en')">English</button>
       </div>
     </div>
   </div>
@@ -534,6 +548,7 @@ const I18N = {
     settingsShortcutOpen: 'この設定を開く',
     settingsShortcutTheme: 'ダークモード切替',
     settingsShortcutEscape: '開いているウィンドウを閉じる',
+    settingsLangLabel: '🌐 言語 / Language',
     themeDark: '🌙 ダーク',
     themeLight: '☀️ ライト',
     dockSearch: '検索',
@@ -588,6 +603,7 @@ const I18N = {
     settingsShortcutOpen: 'Open this settings panel',
     settingsShortcutTheme: 'Toggle dark mode',
     settingsShortcutEscape: 'Close the open window',
+    settingsLangLabel: '🌐 Language',
     themeDark: '🌙 Dark',
     themeLight: '☀️ Light',
     dockSearch: 'Search',
@@ -625,14 +641,32 @@ function applyI18n() {
   if (langBtn) langBtn.textContent = LANG === 'ja' ? 'EN' : '日本語';
 }
 
-function toggleLang() {
-  LANG = LANG === 'ja' ? 'en' : 'ja';
+// 設定モーダル内の言語セレクターボタン（日本語／English）の選択状態を、
+// 現在のLANGに同期させる。モーダルを開いた直後・言語切替直後の両方で呼ぶ。
+function syncSettingsLangButtons() {
+  const jaBtn = document.getElementById('settingsLangJaBtn');
+  const enBtn = document.getElementById('settingsLangEnBtn');
+  if (jaBtn) jaBtn.classList.toggle('active', LANG === 'ja');
+  if (enBtn) enBtn.classList.toggle('active', LANG === 'en');
+}
+
+// 指定した言語に直接切り替える（設定モーダルの言語セレクター用）。
+// 既に選択中の言語を指定した場合は何もしない安全なno-op。
+function setLang(lang) {
+  if (lang !== 'ja' && lang !== 'en') return;
+  if (LANG === lang) { syncSettingsLangButtons(); return; }
+  LANG = lang;
   localStorage.setItem('sky_app_lang', LANG);
   applyI18n();
   applyThemeToDOM(); // ダーク/ライト表示ボタンの文言（言語依存）を更新
   populateSeasonFilter();
   renderList();
   renderNeverRevisited();
+  syncSettingsLangButtons();
+}
+
+function toggleLang() {
+  setLang(LANG === 'ja' ? 'en' : 'ja');
 }
 
 function formatDate(d) {
@@ -820,6 +854,7 @@ function settingsSaveShortcutsPref() {
 function settingsOpen() {
   document.getElementById('settingsShortcutsToggle').checked = skyShortcutsEnabled();
   applyThemeToDOM();
+  syncSettingsLangButtons();
   document.getElementById('settingsModalOverlay').classList.add('show');
 }
 
