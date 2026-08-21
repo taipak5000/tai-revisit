@@ -37,7 +37,12 @@
       --green:     #34C759;
       --red:       #FF3B30;
       --text:      #1C1C1E;
-      --text-2:    #8E8E93;
+      /* ライトモードの --text-2 は、背景 --bg/--card (#F2F2F7 / #FFFFFF) に対して
+         WCAG AA（通常文字 4.5:1）を満たす濃さに調整済み（旧値 #8E8E93 は
+         約2.92〜3.26:1 しかなく、.spirit-badge.area・.spirit-name-en・footerで
+         不足していた）。ダークモード側の値は既に基準を満たしているため据え置き。
+         taipak5000.github.io系の他サイト（tai-info等）と同じ調整値。 */
+      --text-2:    #636366;
       --text-3:    #C7C7CC;
       --r:         16px;
       --r-sm:      10px;
@@ -316,9 +321,9 @@
 </div>
 
 <div class="app-layout">
-  <aside class="sidebar" id="sidebar">
+  <aside class="sidebar" id="sidebar" aria-labelledby="sidebarTitle" tabindex="-1">
     <div class="sidebar-head">
-      <div class="sidebar-section-label" data-i18n="relatedTools">🔗 関連ツール</div>
+      <div class="sidebar-section-label" id="sidebarTitle" data-i18n="relatedTools">🔗 関連ツール</div>
       <button class="sidebar-close-btn" onclick="toggleSidebar()">✕</button>
     </div>
     <a href="https://taipak5000.github.io/tai-item/" class="sidebar-nav-link" data-i18n="toolItem">🗂️ アイテム所持管理</a>
@@ -805,9 +810,49 @@ function escapeHtml(str) {
   }[c]));
 }
 
+// ♿ サイドバードロワーのフォーカス管理（開いた時に中へ移動・Tabで閉じ込め・閉じたら
+// 開くきっかけになった要素へ戻す）は下部で定義するgetFocusableEls/trapTabWithinを
+// 設定モーダルと共用する（sidebarOpenerEl・sidebarTrapTabは同ファイル後方で定義）。
 function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('sidebar-open');
+  const sidebar = document.getElementById('sidebar');
+  const opening = !sidebar.classList.contains('sidebar-open');
+  sidebar.classList.toggle('sidebar-open');
   document.getElementById('sidebarOverlay').classList.toggle('show');
+  if (opening) {
+    sidebar.setAttribute('role', 'dialog');
+    sidebar.setAttribute('aria-modal', 'true');
+    sidebarOpenerEl = document.activeElement;
+    document.addEventListener('keydown', sidebarTrapTab, true);
+    const focusables = getFocusableEls(sidebar);
+    (focusables[0] || sidebar).focus();
+  } else {
+    sidebar.removeAttribute('role');
+    sidebar.removeAttribute('aria-modal');
+    document.removeEventListener('keydown', sidebarTrapTab, true);
+    if (sidebarOpenerEl && typeof sidebarOpenerEl.focus === 'function' && document.contains(sidebarOpenerEl)) {
+      sidebarOpenerEl.focus();
+    }
+    sidebarOpenerEl = null;
+  }
+}
+
+// 📱→🖥️ モバイル幅でドロワーを開いたまま、ウィンドウのリサイズやタブレットの回転で
+// ビューポートが850px以上（サイドバー常時表示のデスクトップレイアウト、
+// `@media (min-width: 850px) { .sidebar { display: block } }`）をまたいでしまった場合の保険。
+// この瞬間から.sidebar-toggle-btnはvisibility:hiddenになり再オープンの手段が消える上、
+// オーバーレイと開いたままのドロワーが視覚的に残り続けてしまうため、matchMediaで
+// 850px境界をまたいだ瞬間を直接検知し、開いていればtoggleSidebar()で閉じる。
+const desktopSidebarMQ = window.matchMedia('(min-width: 850px)');
+function handleSidebarViewportChange(e) {
+  if (e.matches && document.getElementById('sidebar').classList.contains('sidebar-open')) {
+    toggleSidebar();
+  }
+}
+if (desktopSidebarMQ.addEventListener) {
+  desktopSidebarMQ.addEventListener('change', handleSidebarViewportChange);
+} else if (desktopSidebarMQ.addListener) {
+  // Safari 13以前など、addEventListenerを持たない古いMediaQueryList向けのフォールバック
+  desktopSidebarMQ.addListener(handleSidebarViewportChange);
 }
 
 /* ================================================================
@@ -860,34 +905,38 @@ function settingsSaveShortcutsPref() {
   try { localStorage.setItem('sky_shortcuts_enabled', checked ? '1' : '0'); } catch (e) {}
 }
 
-// ⌨️ 設定モーダルのフォーカス管理（開いた時にモーダル内へ移動・Tabで閉じ込め・
-// 閉じたら開くきっかけになった要素へ戻す）。role="dialog" aria-modal="true" を
-// 名実ともに機能させるために必要。
+// ⌨️ 設定モーダル・サイドバードロワー共通のフォーカス管理（開いた時に中へ移動・
+// Tabで閉じ込め・閉じたら開くきっかけになった要素へ戻す）。role="dialog"
+// aria-modal="true" を名実ともに機能させるために必要。コンテナ引数を取る
+// getFocusableEls/trapTabWithinを両者で共有し（元は設定モーダル専用だった実装）、
+// サイドバー側はtoggleSidebar()から呼ばれる。
 let settingsOpenerEl = null;
+let sidebarOpenerEl = null;
 
-function settingsFocusableEls() {
-  const card = document.getElementById('settingsModalCard');
-  return Array.from(card.querySelectorAll(
+function getFocusableEls(container) {
+  return Array.from(container.querySelectorAll(
     'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
   ));
 }
 
-// モーダル表示中のみ document に張るキーダウンリスナー。Tabキーの移動先を
-// モーダル内の要素だけに閉じ込める（先頭でShift+Tab→末尾へ、末尾でTab→先頭へ循環）。
-function settingsTrapTab(e) {
+// container表示中のみ document に張るキーダウンリスナーから呼ぶ。Tabキーの移動先を
+// container内の要素だけに閉じ込める（先頭でShift+Tab→末尾へ、末尾でTab→先頭へ循環）。
+function trapTabWithin(container, e) {
   if (e.key !== 'Tab') return;
-  const card = document.getElementById('settingsModalCard');
-  const focusables = settingsFocusableEls();
+  const focusables = getFocusableEls(container);
   if (focusables.length === 0) { e.preventDefault(); return; }
   const first = focusables[0];
   const last = focusables[focusables.length - 1];
-  const outside = !card.contains(document.activeElement);
+  const outside = !container.contains(document.activeElement);
   if (e.shiftKey) {
     if (outside || document.activeElement === first) { e.preventDefault(); last.focus(); }
   } else {
     if (outside || document.activeElement === last) { e.preventDefault(); first.focus(); }
   }
 }
+
+function settingsTrapTab(e) { trapTabWithin(document.getElementById('settingsModalCard'), e); }
+function sidebarTrapTab(e) { trapTabWithin(document.getElementById('sidebar'), e); }
 
 function settingsOpen() {
   document.getElementById('settingsShortcutsToggle').checked = skyShortcutsEnabled();
@@ -897,7 +946,7 @@ function settingsOpen() {
   document.getElementById('settingsModalOverlay').classList.add('show');
   document.addEventListener('keydown', settingsTrapTab, true);
   const card = document.getElementById('settingsModalCard');
-  const focusables = settingsFocusableEls();
+  const focusables = getFocusableEls(card);
   (focusables[0] || card).focus();
 }
 
