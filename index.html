@@ -147,10 +147,13 @@
       display: flex; align-items: center; justify-content: center; overflow: hidden;
     }
     .spirit-icon img { width: 100%; height: 100%; object-fit: contain; }
+    /* 🕊️ アイコン画像の読み込み失敗時のフォールバック（.spirit-icon-fallbackは平時は非表示）。
+       .no-imageが付与されたら img を隠し、代わりにこの絵文字を表示する。 */
+    .spirit-icon-fallback { display: none; }
+    .spirit-icon.no-image img { display: none; }
+    .spirit-icon.no-image .spirit-icon-fallback { display: block; }
     .spirit-body { flex: 1; min-width: 0; }
     .spirit-name-ja { font-size: 15px; font-weight: 700; display: block; }
-    a.spirit-name-link { color: var(--text); text-decoration: none; }
-    a.spirit-name-link:hover, a.spirit-name-link:focus-visible { color: var(--cyan-d); text-decoration: underline; text-underline-offset: 2px; }
     .spirit-name-en { font-size: 11.5px; color: var(--text-2); margin-top: 1px; }
     .spirit-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
     .spirit-badge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--cyan-bg); color: var(--cyan-d); }
@@ -266,7 +269,7 @@
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
 <div class="settings-modal-overlay" id="settingsModalOverlay" onclick="if (event.target === this) settingsClose();">
-  <div class="settings-modal-card" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+  <div class="settings-modal-card" id="settingsModalCard" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle" tabindex="-1">
     <div class="settings-modal-head">
       <h3 id="settingsModalTitle" data-i18n="settingsTitle">⚙️ 表示設定</h3>
       <button class="settings-modal-close-btn" onclick="settingsClose()">✕</button>
@@ -324,7 +327,6 @@
     <a href="https://taipak5000.github.io/tai-nomacan/" class="sidebar-nav-link" data-i18n="toolNomacan">🕯️ ノマキャン計算機</a>
     <a href="https://taipak5000.github.io/star-candle/" class="sidebar-nav-link" data-i18n="toolStarCandle">🕯️ 星のキャンドル計算機</a>
     <a href="https://taipak5000.github.io/companion/" class="sidebar-nav-link" data-i18n="toolCompanion">✨ 精霊同行ツール</a>
-    <a href="https://taipak5000.github.io/tai-catalog/" class="sidebar-nav-link" data-i18n="toolCatalog">🌳 精霊ツリー管理</a>
     <a href="https://taipak5000.github.io/wings/" class="sidebar-nav-link" data-i18n="toolWings">🪽 羽トラッカー</a>
     <a href="https://taipak5000.github.io/tai-transfer/" class="sidebar-nav-link" data-i18n="toolTransfer">🔄 データ引継ぎ</a>
   </aside>
@@ -375,7 +377,7 @@
   </span>
 </footer>
 
-<nav class="site-dock" aria-label="クイックメニュー">
+<nav class="site-dock" aria-label="クイックメニュー" data-i18n-aria-label="dockAriaLabel">
   <button type="button" onclick="dockFocusSearch()">
     <span class="site-dock-icon">🔍</span>
     <span class="site-dock-label" data-i18n="dockSearch">検索</span>
@@ -450,11 +452,6 @@ const AREA_JA = {
 };
 function areaJa(area) { return AREA_JA[area] || area; }
 
-// 精霊ツリー管理（spirit-catalog）の該当精霊の詳細（ツリー開放状況）へのリンク
-function spiritCatalogLink(nameJa) {
-  return `https://taipak5000.github.io/tai-catalog/#spirit=${encodeURIComponent(nameJa)}`;
-}
-
 // 季節の実装（リリース）順。spirit-catalogのSEASON_JA_MAPと同じ並びを流用。
 const SEASON_ORDER = [
   '感謝の季節', '光の探求者の季節', '想いを編む季節', 'リズムが弾ける季節', '魔法の季節',
@@ -518,7 +515,6 @@ const I18N = {
     toolNomacan: '🕯️ ノマキャン計算機',
     toolStarCandle: '🕯️ 星のキャンドル計算機',
     toolCompanion: '✨ 精霊同行ツール',
-    toolCatalog: '🌳 精霊ツリー管理',
     toolWings: '🪽 羽トラッカー',
     toolTransfer: '🔄 データ引継ぎ',
     introPart1: '過去に来訪（Traveling Spirit）・特別来訪（Returning Spirits）した精霊の履歴を検索できる、閲覧専用の参考データベースです。所持チェックなどの記録機能はありません。データは',
@@ -541,7 +537,6 @@ const I18N = {
     filterStats: '{shown} / {total} 精霊',
     emptyState: '該当する精霊が見つかりませんでした',
     visitCountLine: '来訪 {count} 回　・　最終来訪から {days} 日',
-    treeLinkTitle: '精霊ツリー管理でツリー開放状況を見る',
     neverRevisitedCount: '（{n}）',
     typeVisit: '来訪',
     typeReturning: '特別来訪',
@@ -562,7 +557,8 @@ const I18N = {
     dockSearch: '検索',
     dockUnvisited: '未再訪',
     dockTools: '他のツール',
-    dockSettings: '表示設定'
+    dockSettings: '表示設定',
+    dockAriaLabel: 'クイックメニュー'
   },
   en: {
     navTitle: '🕊️ Revisit Spirit Database',
@@ -574,7 +570,6 @@ const I18N = {
     toolNomacan: '🕯️ Nomacan Calculator',
     toolStarCandle: '🕯️ Star Candle Calculator',
     toolCompanion: '✨ Spirit Companion Tool',
-    toolCatalog: '🌳 Spirit Tree Manager',
     toolWings: '🪽 Wing Tracker',
     toolTransfer: '🔄 Data Transfer',
     introPart1: 'A read-only reference database for looking up the visit history of Traveling Spirits and Returning Spirits. There is no ownership-tracking feature here. Data is based on the',
@@ -597,7 +592,6 @@ const I18N = {
     filterStats: '{shown} / {total} spirits',
     emptyState: 'No matching spirits found',
     visitCountLine: 'Visited {count}× · {days}d since last visit',
-    treeLinkTitle: 'View tree unlock status in Spirit Tree Manager',
     neverRevisitedCount: '({n})',
     typeVisit: 'Visit',
     typeReturning: 'Returning Spirits',
@@ -618,7 +612,8 @@ const I18N = {
     dockSearch: 'Search',
     dockUnvisited: 'Unvisited',
     dockTools: 'Other Tools',
-    dockSettings: 'Display Settings'
+    dockSettings: 'Display Settings',
+    dockAriaLabel: 'Quick Menu'
   }
 };
 
@@ -645,6 +640,10 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n-title]').forEach(el => {
     const key = el.getAttribute('data-i18n-title');
     if (I18N[LANG][key] !== undefined) el.title = I18N[LANG][key];
+  });
+  document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+    const key = el.getAttribute('data-i18n-aria-label');
+    if (I18N[LANG][key] !== undefined) el.setAttribute('aria-label', I18N[LANG][key]);
   });
   const langBtn = document.getElementById('langToggleBtn');
   if (langBtn) langBtn.textContent = LANG === 'ja' ? 'EN' : '日本語';
@@ -756,10 +755,11 @@ function renderList() {
     return `
       <div class="spirit-card">
         <div class="spirit-icon">
-          <img src="${s.imageUrl}" alt="${escapeHtml(s.nameJa)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+          <img src="${s.imageUrl}" alt="${escapeHtml(s.nameJa)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.classList.add('no-image')">
+          <span class="spirit-icon-fallback">🕊️</span>
         </div>
         <div class="spirit-body">
-          <a class="spirit-name-ja spirit-name-link" href="${spiritCatalogLink(s.nameJa)}" target="_blank" rel="noopener noreferrer" title="${t('treeLinkTitle')}">${escapeHtml(s.nameJa)}</a>
+          <span class="spirit-name-ja">${escapeHtml(s.nameJa)}</span>
           <div class="spirit-name-en">${escapeHtml(s.nameEn)}</div>
           <div class="spirit-meta">
             <span class="spirit-badge">${escapeHtml(LANG === 'en' ? seasonLabel(s.season) : s.season)}</span>
@@ -789,7 +789,7 @@ function renderNeverRevisited() {
           : '🕊️'}
       </div>
       <div class="spirit-body">
-        <a class="spirit-name-ja spirit-name-link" href="${spiritCatalogLink(s.nameJa)}" target="_blank" rel="noopener noreferrer" title="${t('treeLinkTitle')}">${escapeHtml(s.nameJa)}</a>
+        <span class="spirit-name-ja">${escapeHtml(s.nameJa)}</span>
         <div class="spirit-name-en">${escapeHtml(s.nameEn)}</div>
         <div class="spirit-meta">
           <span class="spirit-badge">${escapeHtml(LANG === 'en' ? seasonLabel(s.season) : s.season)}</span>
@@ -860,15 +860,54 @@ function settingsSaveShortcutsPref() {
   try { localStorage.setItem('sky_shortcuts_enabled', checked ? '1' : '0'); } catch (e) {}
 }
 
+// ⌨️ 設定モーダルのフォーカス管理（開いた時にモーダル内へ移動・Tabで閉じ込め・
+// 閉じたら開くきっかけになった要素へ戻す）。role="dialog" aria-modal="true" を
+// 名実ともに機能させるために必要。
+let settingsOpenerEl = null;
+
+function settingsFocusableEls() {
+  const card = document.getElementById('settingsModalCard');
+  return Array.from(card.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  ));
+}
+
+// モーダル表示中のみ document に張るキーダウンリスナー。Tabキーの移動先を
+// モーダル内の要素だけに閉じ込める（先頭でShift+Tab→末尾へ、末尾でTab→先頭へ循環）。
+function settingsTrapTab(e) {
+  if (e.key !== 'Tab') return;
+  const card = document.getElementById('settingsModalCard');
+  const focusables = settingsFocusableEls();
+  if (focusables.length === 0) { e.preventDefault(); return; }
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  const outside = !card.contains(document.activeElement);
+  if (e.shiftKey) {
+    if (outside || document.activeElement === first) { e.preventDefault(); last.focus(); }
+  } else {
+    if (outside || document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+}
+
 function settingsOpen() {
   document.getElementById('settingsShortcutsToggle').checked = skyShortcutsEnabled();
   applyThemeToDOM();
   syncSettingsLangButtons();
+  settingsOpenerEl = document.activeElement;
   document.getElementById('settingsModalOverlay').classList.add('show');
+  document.addEventListener('keydown', settingsTrapTab, true);
+  const card = document.getElementById('settingsModalCard');
+  const focusables = settingsFocusableEls();
+  (focusables[0] || card).focus();
 }
 
 function settingsClose() {
   document.getElementById('settingsModalOverlay').classList.remove('show');
+  document.removeEventListener('keydown', settingsTrapTab, true);
+  if (settingsOpenerEl && typeof settingsOpenerEl.focus === 'function' && document.contains(settingsOpenerEl)) {
+    settingsOpenerEl.focus();
+  }
+  settingsOpenerEl = null;
 }
 
 // Escapeで閉じるべき「現在開いているウィンドウ」の優先順位（設定モーダル→サイドバー）。
