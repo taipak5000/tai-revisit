@@ -169,7 +169,10 @@
     /* --green var非経由の直書き色のため、ダークモードでのコントラスト確保用に別途上書き（色相は同じ緑のまま） */
     [data-theme="dark"] .visit-chip.sv { background: rgba(48,209,88,0.18); color: var(--green); }
     .visit-chip.err { background: rgba(255,59,48,0.10); color: var(--red); }
-    .visit-count { font-size: 11px; color: var(--text-2); margin-top: 6px; }
+    .visit-count { font-size: 11px; color: var(--text-2); margin-top: 6px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+    /* 🏆 「最終来訪からの日数が長い順」ソート時のみ表示される、全精霊中の順位バッジ
+       （.spirit-badgeと同じシアン系トークンを流用し、テーマ別の上書きにも自動追従する） */
+    .spirit-rank-badge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--cyan-bg); color: var(--cyan-d); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
     .empty-state { text-align: center; padding: 40px 16px; color: var(--text-2); font-size: 13px; }
 
@@ -542,6 +545,8 @@ const I18N = {
     filterStats: '{shown} / {total} 精霊',
     emptyState: '該当する精霊が見つかりませんでした',
     visitCountLine: '来訪 {count} 回　・　最終来訪から {days} 日',
+    rankLabel: '{rank}位',
+    rankTitle: '「最終来訪からの日数が長い順」での全精霊中の順位（検索・季節フィルターに関わらず一定）',
     neverRevisitedCount: '（{n}）',
     typeVisit: '来訪',
     typeReturning: '特別来訪',
@@ -597,6 +602,8 @@ const I18N = {
     filterStats: '{shown} / {total} spirits',
     emptyState: 'No matching spirits found',
     visitCountLine: 'Visited {count}× · {days}d since last visit',
+    rankLabel: '#{rank}',
+    rankTitle: 'Rank among all spirits by "Longest Since Last Visit" (unaffected by search/season filter)',
     neverRevisitedCount: '({n})',
     typeVisit: 'Visit',
     typeReturning: 'Returning Spirits',
@@ -700,6 +707,18 @@ function daysSince(dateStr) {
   return Math.max(0, Math.round((todayLocal - target) / 86400000));
 }
 
+// 🏆 「最終来訪からの日数が長い順」（最も再訪が滞っている精霊順）での、
+// 全精霊（REVISIT_DATA全体）を対象にした順位表を返す（nameJa → 1始まりの順位）。
+// 季節フィルターや検索語による絞り込みの影響を受けない固定値にすることで、
+// 「絞り込み中でも全精霊の中で何番目に滞っているか」が分かるようにしている
+// （ソートモード自体のコンパレータ: sortMode === 'daysSince' の分岐と同一基準）。
+function computeOverdueRanks() {
+  const sorted = [...REVISIT_DATA].sort((a, b) => lastVisitEndDate(a).localeCompare(lastVisitEndDate(b)));
+  const ranks = new Map();
+  sorted.forEach((s, i) => ranks.set(s.nameJa, i + 1));
+  return ranks;
+}
+
 function populateSeasonFilter() {
   const seasons = [...new Set(REVISIT_DATA.map(s => s.season))].sort((a, b) => {
     const ia = SEASON_ORDER.indexOf(a), ib = SEASON_ORDER.indexOf(b);
@@ -751,12 +770,19 @@ function renderList() {
     return;
   }
 
+  // 順位バッジは「最終来訪からの日数が長い順」ソート時のみ意味を持つため、
+  // その場合に限り全精霊対象の順位表を算出する（他のソート時は毎回計算しない）。
+  const overdueRanks = sortMode === 'daysSince' ? computeOverdueRanks() : null;
+
   container.innerHTML = list.map(s => {
     const chips = s.visits.map(v => {
       const cls = v.type === 'SV' ? 'sv' : (v.type === 'TS-Error' ? 'err' : '');
       const label = typeLabel(v.type);
       return `<span class="visit-chip ${cls}" title="${label}">${formatDate(v.date)}</span>`;
     }).join('');
+    const rankBadge = overdueRanks
+      ? `<span class="spirit-rank-badge" title="${escapeHtml(t('rankTitle'))}">${escapeHtml(t('rankLabel', { rank: overdueRanks.get(s.nameJa) }))}</span>`
+      : '';
     return `
       <div class="spirit-card">
         <div class="spirit-icon">
@@ -771,7 +797,7 @@ function renderList() {
             <span class="spirit-badge area">${escapeHtml(LANG === 'en' ? s.area : areaJa(s.area))}</span>
           </div>
           <div class="visit-list">${chips}</div>
-          <div class="visit-count">${t('visitCountLine', { count: s.visits.length, days: daysSince(lastVisitEndDate(s)) })}</div>
+          <div class="visit-count">${rankBadge}${t('visitCountLine', { count: s.visits.length, days: daysSince(lastVisitEndDate(s)) })}</div>
         </div>
       </div>`;
   }).join('');
