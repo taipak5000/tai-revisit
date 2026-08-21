@@ -785,7 +785,7 @@ function renderNeverRevisited() {
     <div class="spirit-card">
       <div class="spirit-icon${s.imageUrl ? '' : ' no-image'}">
         ${s.imageUrl
-          ? `<img src="${s.imageUrl}" alt="${escapeHtml(s.nameJa)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">`
+          ? `<img src="${s.imageUrl}" alt="${escapeHtml(s.nameJa)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.classList.add('no-image')"><span class="spirit-icon-fallback">🕊️</span>`
           : '🕊️'}
       </div>
       <div class="spirit-body">
