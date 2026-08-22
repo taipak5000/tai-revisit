@@ -151,7 +151,15 @@
        タッチ操作中心のユーザーには伝わらない。常時表示の凡例として、実際のチップと
        同じクラス（.visit-chip/.sv/.err）を使い回して色と意味の対応を明示する。 */
     .filter-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--sep); }
+    .filter-stats-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
     .filter-stats { font-size: 12px; color: var(--text-2); padding: 10px 2px 0; }
+    /* 🧹 検索語・季節・並び順のいずれかが既定値から変わっているときだけ表示するリセットボタン
+       （通常時は場所を取らないよう非表示。表示/非表示の切替はrenderList()側で行う） */
+    .filter-clear-btn {
+      font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px;
+      background: var(--bg); color: var(--text-2); border: 1px solid var(--sep); white-space: nowrap; flex-shrink: 0;
+    }
+    .filter-clear-btn:hover { border-color: var(--cyan); color: var(--cyan-d); }
 
     /* ── 精霊カード ─────────────────────────── */
     .spirit-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
@@ -373,7 +381,11 @@
         <span class="visit-chip sv" data-i18n="typeReturning">特別来訪</span>
         <span class="visit-chip err" data-i18n="typeError">エラー表示</span>
       </div>
-      <div class="filter-stats" id="filterStats"></div>
+      <div class="filter-stats-row">
+        <div class="filter-stats" id="filterStats"></div>
+        <button type="button" class="filter-clear-btn" id="clearAllFiltersBtn" style="display:none;"
+          onclick="clearAllFilters()" data-i18n="clearAllFiltersBtn">✕ フィルターを全てクリア</button>
+      </div>
     </div>
 
     <div class="spirit-list" id="spiritList"><!-- JS --></div>
@@ -547,6 +559,7 @@ const I18N = {
     sortDaysSince: '最終来訪からの日数が長い順',
     sortName: '精霊名順',
     sortCount: '来訪回数が多い順',
+    clearAllFiltersBtn: '✕ フィルターを全てクリア',
     collapseSummary: '🕰️ まだ一度も再訪が来ていない精霊',
     collapseNote: '季節精霊のうち、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度も来ていない精霊の一覧です。',
     footerDisclaimer: 'このサイトはSky 星を紡ぐ子どもたちの非公式ファンサイトです。thatgamecompanyは一切関与していません。',
@@ -605,6 +618,7 @@ const I18N = {
     sortDaysSince: 'Longest Since Last Visit',
     sortName: 'Spirit Name',
     sortCount: 'Most Visits',
+    clearAllFiltersBtn: '✕ Clear all filters',
     collapseSummary: '🕰️ Never-Revisited Spirits',
     collapseNote: 'Seasonal spirits that have never had a Traveling Spirit or Returning Spirits visit.',
     footerDisclaimer: 'This is an unofficial fan site for Sky: Children of the Light. thatgamecompany is not involved in any way.',
@@ -756,10 +770,25 @@ function populateSeasonFilter() {
   if (prevValue && seasons.includes(prevValue)) select.value = prevValue;
 }
 
+// 🧹 検索語＋季節フィルター＋並び順をまとめて既定値（未入力／すべての季節／最新の来訪順）に戻す
+function clearAllFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('seasonFilter').value = 'all';
+  document.getElementById('sortMode').value = 'latest';
+  renderList();
+}
+
 function renderList() {
   const q = normalizeSearchText(document.getElementById('searchInput').value.trim());
   const seasonFilter = document.getElementById('seasonFilter').value;
   const sortMode = document.getElementById('sortMode').value;
+
+  // フィルターが1つでも既定値から変わっているときだけ「全てクリア」ボタンを表示する
+  const clearBtn = document.getElementById('clearAllFiltersBtn');
+  if (clearBtn) {
+    const anyFilterActive = !!q || seasonFilter !== 'all' || sortMode !== 'latest';
+    clearBtn.style.display = anyFilterActive ? '' : 'none';
+  }
 
   let list = REVISIT_DATA.filter(s => {
     if (seasonFilter !== 'all' && s.season !== seasonFilter) return false;
