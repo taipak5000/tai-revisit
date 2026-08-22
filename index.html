@@ -32,7 +32,11 @@
       --card:      #FFFFFF;
       --sep:       rgba(60,60,67,0.12);
       --cyan:      #32ADE6;
-      --cyan-d:    #1A87BD;
+      /* ライトモードの --cyan-d は、.spirit-badge/.spirit-rank-badge が使う
+         --cyan-bg（季節バッジ・全精霊中の順位バッジの背景）の上でWCAG AA
+         （通常文字 4.5:1）を満たす濃さに調整済み（旧値 #1A87BD は約3.66:1しか
+         なく不足していた）。ダークモード側の値は既に基準を満たしているため据え置き。 */
+      --cyan-d:    #1673A1;
       --cyan-bg:   rgba(50,173,230,0.10);
       --green:     #34C759;
       --red:       #FF3B30;
@@ -142,6 +146,11 @@
     }
     .filter-search:focus, .filter-select:focus { outline: none; border-color: var(--cyan); }
     .filter-select { flex: 1 1 140px; }
+    /* ♿ 来訪種別（通常/特別来訪/エラー表示）はチップの背景色だけでも判別できるが、
+       色だけに頼ると色覚多様性のあるユーザーや（ホバー前提のtitle属性が効かない）
+       タッチ操作中心のユーザーには伝わらない。常時表示の凡例として、実際のチップと
+       同じクラス（.visit-chip/.sv/.err）を使い回して色と意味の対応を明示する。 */
+    .filter-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--sep); }
     .filter-stats { font-size: 12px; color: var(--text-2); padding: 10px 2px 0; }
 
     /* ── 精霊カード ─────────────────────────── */
@@ -359,6 +368,11 @@
           <option value="count" data-i18n="sortCount">来訪回数が多い順</option>
         </select>
       </div>
+      <div class="filter-legend" role="group" data-i18n-aria-label="visitTypeLegendLabel" aria-label="来訪種別の凡例">
+        <span class="visit-chip" data-i18n="typeVisit">来訪</span>
+        <span class="visit-chip sv" data-i18n="typeReturning">特別来訪</span>
+        <span class="visit-chip err" data-i18n="typeError">エラー表示</span>
+      </div>
       <div class="filter-stats" id="filterStats"></div>
     </div>
 
@@ -551,6 +565,7 @@ const I18N = {
     typeVisit: '来訪',
     typeReturning: '特別来訪',
     typeError: 'エラー表示',
+    visitTypeLegendLabel: '来訪種別の凡例',
     pageTitle: '再訪精霊データベース - Sky所持率管理',
     settingsTitle: '⚙️ 表示設定',
     settingsDisplayLabel: '🌙 表示',
@@ -608,6 +623,7 @@ const I18N = {
     typeVisit: 'Visit',
     typeReturning: 'Returning Spirits',
     typeError: 'Display Error',
+    visitTypeLegendLabel: 'Visit type legend',
     pageTitle: 'Revisit Spirit Database - Sky Collection Tracker',
     settingsTitle: '⚙️ Display Settings',
     settingsDisplayLabel: '🌙 Display',
@@ -837,8 +853,8 @@ function escapeHtml(str) {
 }
 
 // ♿ サイドバードロワーのフォーカス管理（開いた時に中へ移動・Tabで閉じ込め・閉じたら
-// 開くきっかけになった要素へ戻す）は下部で定義するgetFocusableEls/trapTabWithinを
-// 設定モーダルと共用する（sidebarOpenerEl・sidebarTrapTabは同ファイル後方で定義）。
+// 開くきっかけになった要素へ戻す）は下部で定義するgetFocusableEls/trapTabWithin/
+// pushModalTrap・popModalTrapを設定モーダルと共用する（sidebarOpenerElは同ファイル後方で定義）。
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const opening = !sidebar.classList.contains('sidebar-open');
@@ -848,13 +864,13 @@ function toggleSidebar() {
     sidebar.setAttribute('role', 'dialog');
     sidebar.setAttribute('aria-modal', 'true');
     sidebarOpenerEl = document.activeElement;
-    document.addEventListener('keydown', sidebarTrapTab, true);
+    pushModalTrap(sidebar);
     const focusables = getFocusableEls(sidebar);
     (focusables[0] || sidebar).focus();
   } else {
     sidebar.removeAttribute('role');
     sidebar.removeAttribute('aria-modal');
-    document.removeEventListener('keydown', sidebarTrapTab, true);
+    popModalTrap(sidebar);
     if (sidebarOpenerEl && typeof sidebarOpenerEl.focus === 'function' && document.contains(sidebarOpenerEl)) {
       sidebarOpenerEl.focus();
     }
@@ -961,8 +977,34 @@ function trapTabWithin(container, e) {
   }
 }
 
-function settingsTrapTab(e) { trapTabWithin(document.getElementById('settingsModalCard'), e); }
-function sidebarTrapTab(e) { trapTabWithin(document.getElementById('sidebar'), e); }
+// ♿ サイドバードロワーを開いた状態で設定モーダルを開くと、両方のフォーカストラップが
+// documentへ個別にkeydownリスナーを張った状態になり、Tabキーの移動先を互いに
+// 奪い合ってフォーカスが完全に固まってしまう(1回のTab押下の中で「サイドバー側が
+// フォーカスを移動→設定モーダル側がすぐ奪い返す」が起きるため、毎回同じ要素に
+// 戻ってしまい見た目上は微動だにしない)というリグレッションがあった。
+// documentへのkeydownリスナーは常に1本だけとし、開いているコンテナをスタックで
+// 管理して「最上位(最後に開いたもの)だけが有効なトラップ」になるようにする
+// (Escapeの優先順位=closeTopmostOpenModal()と同じ「後から開いたものが上」という考え方)。
+let modalTrapStack = [];
+
+function stackedTrapTab(e) {
+  const top = modalTrapStack[modalTrapStack.length - 1];
+  if (top) trapTabWithin(top, e);
+}
+
+function pushModalTrap(container) {
+  modalTrapStack.push(container);
+  if (modalTrapStack.length === 1) {
+    document.addEventListener('keydown', stackedTrapTab, true);
+  }
+}
+
+function popModalTrap(container) {
+  modalTrapStack = modalTrapStack.filter(c => c !== container);
+  if (modalTrapStack.length === 0) {
+    document.removeEventListener('keydown', stackedTrapTab, true);
+  }
+}
 
 function settingsOpen() {
   document.getElementById('settingsShortcutsToggle').checked = skyShortcutsEnabled();
@@ -970,15 +1012,15 @@ function settingsOpen() {
   syncSettingsLangButtons();
   settingsOpenerEl = document.activeElement;
   document.getElementById('settingsModalOverlay').classList.add('show');
-  document.addEventListener('keydown', settingsTrapTab, true);
   const card = document.getElementById('settingsModalCard');
+  pushModalTrap(card);
   const focusables = getFocusableEls(card);
   (focusables[0] || card).focus();
 }
 
 function settingsClose() {
   document.getElementById('settingsModalOverlay').classList.remove('show');
-  document.removeEventListener('keydown', settingsTrapTab, true);
+  popModalTrap(document.getElementById('settingsModalCard'));
   if (settingsOpenerEl && typeof settingsOpenerEl.focus === 'function' && document.contains(settingsOpenerEl)) {
     settingsOpenerEl.focus();
   }
