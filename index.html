@@ -167,6 +167,23 @@
     }
     .filter-clear-btn:hover { border-color: var(--cyan); color: var(--cyan-d); }
 
+    /* 🔁 クイックフィルターチップ行（季節ドロップダウンとは別枠のワンタップ絞り込み）。
+       トグル前は.filter-clear-btnと似た地味な配色、有効時は.spirit-badge等と同じ
+       シアン系トークンに切り替える（テーマ別上書きにも自動追従）。 */
+    .quick-filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .quick-filter-chip {
+      font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 999px;
+      background: var(--bg); color: var(--text-2); border: 1.5px solid var(--sep); white-space: nowrap;
+    }
+    .quick-filter-chip:hover { border-color: var(--cyan); color: var(--cyan-d); }
+    .quick-filter-chip.active { background: var(--cyan-bg); border-color: var(--cyan); color: var(--cyan-d); font-weight: 700; }
+
+    /* 📊 季節フィルター選択中のみ表示するサマリー統計（該当季節の精霊数・来訪合計・
+       最も滞っている精霊など）。表示/非表示は.sidebar-overlay.show等と同じ
+       classList('show')方式（[hidden]属性は使わない）。 */
+    .season-summary { display: none; background: var(--cyan-bg); color: var(--cyan-d); border-radius: var(--r-sm); padding: 10px 12px; margin-top: 10px; font-size: 12.5px; font-weight: 600; line-height: 1.7; }
+    .season-summary.show { display: block; }
+
     /* ── 精霊カード ─────────────────────────── */
     .spirit-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
     .spirit-card { background: var(--card); border-radius: var(--r); padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); display: flex; gap: 12px; }
@@ -186,6 +203,10 @@
     .spirit-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
     .spirit-badge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--cyan-bg); color: var(--cyan-d); }
     .spirit-badge.area { background: var(--bg); color: var(--text-2); font-weight: 500; }
+    /* 🟢 「進行中の再訪」バッジ（endDateが未来の特別来訪等を持つ精霊のspirit-metaに表示）。
+       .visit-chip.svと同じ直書きの緑を流用し、ダークモード側も同じ考え方で個別に上書きする。 */
+    .spirit-badge.ongoing { background: rgba(52,199,89,0.12); color: #248A3D; }
+    [data-theme="dark"] .spirit-badge.ongoing { background: rgba(48,209,88,0.18); color: var(--green); }
     .visit-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
     .visit-chip { font-size: 11px; font-variant-numeric: tabular-nums; padding: 3px 8px; border-radius: 6px; background: var(--bg); color: var(--text); white-space: nowrap; }
     .visit-chip.sv { background: rgba(52,199,89,0.12); color: #248A3D; }
@@ -211,6 +232,11 @@
     .collapse-count { font-size: 12.5px; font-weight: 500; color: var(--text-2); }
     .collapse-note { font-size: 12px; color: var(--text-2); line-height: 1.7; margin: 10px 2px 0; }
     .collapse-section .spirit-list { margin-top: 12px; }
+    /* 🔍 未再訪セクション自前の検索/季節フィルター行（メインリストの.filter-row/
+       .filter-statsをそのまま再利用しつつ、.filter-card内ではなく.collapse-section
+       直下に置くための余白だけ個別調整する） */
+    .collapse-section .filter-row { margin-top: 10px; }
+    .collapse-section .filter-stats { padding: 8px 2px 0; }
     .spirit-icon.no-image { display: flex; align-items: center; justify-content: center; font-size: 22px; opacity: 0.5; }
 
     /* ── ⚙️ 表示設定モーダル（ダークモード切替・キーボードショートカット） ───────── */
@@ -378,9 +404,15 @@
         <select class="filter-select" id="sortMode" onchange="renderList()">
           <option value="latest" data-i18n="sortLatest">最新の来訪順</option>
           <option value="daysSince" data-i18n="sortDaysSince">最終来訪からの日数が長い順</option>
+          <option value="ongoingFirst" data-i18n="sortOngoing">進行中の再訪を優先</option>
           <option value="name" data-i18n="sortName">精霊名順</option>
           <option value="count" data-i18n="sortCount">来訪回数が多い順</option>
         </select>
+      </div>
+      <div class="quick-filter-row">
+        <button type="button" class="quick-filter-chip" id="svOnlyChip" onclick="toggleSvOnlyFilter()"
+          aria-pressed="false" data-i18n="svOnlyChipLabel" data-i18n-title="svOnlyChipTitle"
+          title="来訪履歴に特別来訪（Returning Spirits）が1回以上含まれる精霊のみ表示します">🔁 特別来訪ありのみ</button>
       </div>
       <div class="filter-legend" role="group" data-i18n-aria-label="visitTypeLegendLabel" aria-label="来訪種別の凡例">
         <span class="visit-chip" data-i18n="typeVisit">来訪</span>
@@ -392,6 +424,7 @@
         <button type="button" class="filter-clear-btn" id="clearAllFiltersBtn" style="display:none;"
           onclick="clearAllFilters()" data-i18n="clearAllFiltersBtn">✕ フィルターを全てクリア</button>
       </div>
+      <div class="season-summary" id="seasonSummary"></div>
     </div>
 
     <div class="spirit-list" id="spiritList"><!-- JS --></div>
@@ -401,6 +434,13 @@
         <span data-i18n="collapseSummary">🕰️ まだ一度も再訪が来ていない精霊</span><span class="collapse-count" id="neverRevisitedCount"></span>
       </summary>
       <div class="collapse-note" data-i18n="collapseNote">季節精霊のうち、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度も来ていない精霊の一覧です。</div>
+      <div class="filter-row">
+        <input type="search" class="filter-search" id="neverRevisitedSearchInput" data-i18n-placeholder="searchPlaceholder" placeholder="🔍 精霊名で検索…" oninput="renderNeverRevisited()">
+        <select class="filter-select" id="neverRevisitedSeasonFilter" onchange="renderNeverRevisited()">
+          <option value="all" data-i18n="seasonAll">すべての季節</option>
+        </select>
+      </div>
+      <div class="filter-stats" id="neverRevisitedFilterStats"></div>
       <div class="spirit-list" id="neverRevisitedList"><!-- JS --></div>
     </details>
   </div>
@@ -565,6 +605,7 @@ const I18N = {
     sortDaysSince: '最終来訪からの日数が長い順',
     sortName: '精霊名順',
     sortCount: '来訪回数が多い順',
+    sortOngoing: '進行中の再訪を優先',
     clearAllFiltersBtn: '✕ フィルターを全てクリア',
     collapseSummary: '🕰️ まだ一度も再訪が来ていない精霊',
     collapseNote: '季節精霊のうち、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度も来ていない精霊の一覧です。',
@@ -604,7 +645,13 @@ const I18N = {
     dockUnvisited: '未再訪',
     dockTools: '他のツール',
     dockSettings: '表示設定',
-    dockAriaLabel: 'クイックメニュー'
+    dockAriaLabel: 'クイックメニュー',
+    ongoingBadge: '🟢 進行中の再訪',
+    visitOngoingTitle: '{type}（進行中）',
+    svOnlyChipLabel: '🔁 特別来訪ありのみ',
+    svOnlyChipTitle: '来訪履歴に特別来訪（Returning Spirits）が1回以上含まれる精霊のみ表示します',
+    seasonSummaryLine: '{season}　・　精霊 {count} 体　・　来訪合計 {visits} 回　・　最も滞っているのは「{mostOverdue}」（{days}日）',
+    seasonSummaryNeverLine: '　・　未再訪 {n} 体'
   },
   en: {
     navTitle: '🕊️ Revisit Spirit Database',
@@ -626,6 +673,7 @@ const I18N = {
     sortDaysSince: 'Longest Since Last Visit',
     sortName: 'Spirit Name',
     sortCount: 'Most Visits',
+    sortOngoing: 'Ongoing Revisits First',
     clearAllFiltersBtn: '✕ Clear all filters',
     collapseSummary: '🕰️ Never-Revisited Spirits',
     collapseNote: 'Seasonal spirits that have never had a Traveling Spirit or Returning Spirits visit.',
@@ -665,7 +713,13 @@ const I18N = {
     dockUnvisited: 'Unvisited',
     dockTools: 'Other Tools',
     dockSettings: 'Display Settings',
-    dockAriaLabel: 'Quick Menu'
+    dockAriaLabel: 'Quick Menu',
+    ongoingBadge: '🟢 Ongoing Revisit',
+    visitOngoingTitle: '{type} (ongoing)',
+    svOnlyChipLabel: '🔁 Returning Spirits Only',
+    svOnlyChipTitle: 'Show only spirits whose visit history includes at least one Returning Spirits event',
+    seasonSummaryLine: '{season} · {count} spirits · {visits} total visits · most overdue: {mostOverdue} ({days}d)',
+    seasonSummaryNeverLine: ' · {n} never revisited'
   }
 };
 
@@ -720,6 +774,7 @@ function setLang(lang) {
   applyI18n();
   applyThemeToDOM(); // ダーク/ライト表示ボタンの文言（言語依存）を更新
   populateSeasonFilter();
+  populateNeverRevisitedSeasonFilter();
   renderList();
   renderNeverRevisited();
   syncSettingsLangButtons();
@@ -759,15 +814,17 @@ function computeOverdueRanks() {
   return ranks;
 }
 
-function populateSeasonFilter() {
-  const seasons = [...new Set(REVISIT_DATA.map(s => s.season))].sort((a, b) => {
+// メインリスト（REVISIT_DATA）・未再訪セクション（NEVER_REVISITED_DATA）どちらの
+// 季節<select>にも使う共通ロジック（データソースと対象<select>のidだけが異なる）。
+function populateSeasonFilterFor(selectId, dataArray) {
+  const seasons = [...new Set(dataArray.map(s => s.season))].sort((a, b) => {
     const ia = SEASON_ORDER.indexOf(a), ib = SEASON_ORDER.indexOf(b);
     if (ia === -1 && ib === -1) return a.localeCompare(b, 'ja');
     if (ia === -1) return 1;
     if (ib === -1) return -1;
     return ia - ib;
   });
-  const select = document.getElementById('seasonFilter');
+  const select = document.getElementById(selectId);
   const prevValue = select.value;
   // 'all'オプション（先頭）以外を毎回作り直す（言語切替時の再呼び出しに対応）
   while (select.options.length > 1) select.remove(1);
@@ -779,29 +836,135 @@ function populateSeasonFilter() {
   // 値（生の日本語季節名）は言語に関わらず不変なので、選択状態を復元する
   if (prevValue && seasons.includes(prevValue)) select.value = prevValue;
 }
+// 🔗 #season=<季節名>&search=<検索語> 形式のディープリンク。spirit-catalog側の
+// #spirit=<精霊名>（location.hash.match(/^#spirit=(.+)$/)で読み取り、hashchangeでも
+// 追従する設計）と同じ考え方をこのサイト自身の検索・季節フィルターに適用したもの。
+// tai-infoのapplyHashRoute()/showTab()と同様、history.replaceState()で書き戻す方式
+// （pushStateではないためフィルター操作のたびに履歴が積み上がることはない）。
+function parseFilterHash() {
+  const raw = location.hash.replace(/^#/, '');
+  const result = {};
+  if (!raw) return result;
+  raw.split('&').forEach(pair => {
+    const eq = pair.indexOf('=');
+    if (eq === -1) return;
+    const key = pair.slice(0, eq);
+    if (key !== 'season' && key !== 'search') return;
+    try { result[key] = decodeURIComponent(pair.slice(eq + 1)); } catch (e) { /* 不正なエンコードは無視 */ }
+  });
+  return result;
+}
 
-// 🧹 検索語＋季節フィルター＋並び順をまとめて既定値（未入力／すべての季節／最新の来訪順）に戻す
+// 現在の検索語・季節フィルターをURLハッシュへ反映する（renderList()の末尾から呼ぶ）。
+// 両方とも既定値（未入力／すべての季節）ならハッシュ自体を取り除く。
+function updateFilterHash(searchValue, seasonValue) {
+  const parts = [];
+  if (seasonValue && seasonValue !== 'all') parts.push('season=' + encodeURIComponent(seasonValue));
+  if (searchValue) parts.push('search=' + encodeURIComponent(searchValue));
+  const newUrl = location.pathname + location.search + (parts.length ? '#' + parts.join('&') : '');
+  history.replaceState(null, '', newUrl);
+}
+
+// ページ読み込み時・hashchange時の両方から呼ぶ。ハッシュに指定がない項目は
+// 既定値（未入力／すべての季節）に戻す（tai-infoのapplyHashRoute()と同じく、
+// ハッシュを「現在の状態そのもの」として扱う）。季節フィルターの<option>群は
+// populateSeasonFilter()呼び出し後でないと存在しないため、呼び出し順に注意。
+function applyFilterHash() {
+  const parsed = parseFilterHash();
+  document.getElementById('searchInput').value = parsed.search || '';
+  const seasonSelect = document.getElementById('seasonFilter');
+  const seasonVal = parsed.season || 'all';
+  const validValues = Array.from(seasonSelect.options).map(o => o.value);
+  seasonSelect.value = validValues.includes(seasonVal) ? seasonVal : 'all';
+  renderList();
+}
+
+function populateSeasonFilter() { populateSeasonFilterFor('seasonFilter', REVISIT_DATA); }
+// 🔍 未再訪セクション自前の季節フィルター（NEVER_REVISITED_DATAにしか登場しない
+// 季節も含まれるため、REVISIT_DATA用のオプション一覧とは別に生成する）。
+function populateNeverRevisitedSeasonFilter() { populateSeasonFilterFor('neverRevisitedSeasonFilter', NEVER_REVISITED_DATA); }
+
+// 🔁 「特別来訪ありのみ」クイックフィルターチップの状態（季節ドロップダウンとは別枠、
+// 検索/季節/並び順のような<select>やテキスト入力ではなくトグルボタンなのでここで単独管理する）。
+let svOnlyFilterActive = false;
+function toggleSvOnlyFilter() {
+  svOnlyFilterActive = !svOnlyFilterActive;
+  const btn = document.getElementById('svOnlyChip');
+  if (btn) {
+    btn.classList.toggle('active', svOnlyFilterActive);
+    btn.setAttribute('aria-pressed', svOnlyFilterActive ? 'true' : 'false');
+  }
+  renderList();
+}
+
+// 🔁 来訪履歴の中に特別来訪（SV、複数精霊同時来訪のReturning Spirits）が
+// 1回以上あるか（「特別来訪ありのみ」チップ用。ongoingFirst/isOngoingVisitとは
+// 別の軸で、こちらは「現在進行中かどうか」に関わらず過去分も含めた履歴全体を見る）。
+function hasSvVisit(s) { return s.visits.some(v => v.type === 'SV'); }
+
+// 🟢 endDateを持つ来訪（主にSV）が、今日時点でまだ「進行中」かどうか。
+// YYYY-MM-DD文字列は辞書式比較がそのまま日付の前後判定になるため、
+// daysSince()と同じ「ローカル日付ベース」の考え方でDate化せず直接比較する。
+function isOngoingVisit(v) {
+  if (!v.endDate) return false;
+  const now = new Date();
+  const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  return v.endDate >= todayStr;
+}
+function hasOngoingVisit(s) { return s.visits.some(isOngoingVisit); }
+
+// 🧹 検索語＋季節フィルター＋並び順＋「特別来訪ありのみ」チップをまとめて既定値
+// （未入力／すべての季節／最新の来訪順／チップOFF）に戻す
 function clearAllFilters() {
   document.getElementById('searchInput').value = '';
   document.getElementById('seasonFilter').value = 'all';
   document.getElementById('sortMode').value = 'latest';
+  svOnlyFilterActive = false;
+  const svChip = document.getElementById('svOnlyChip');
+  if (svChip) { svChip.classList.remove('active'); svChip.setAttribute('aria-pressed', 'false'); }
   renderList();
 }
 
+// 📊 季節フィルターで特定の季節を選択している間だけ、その季節のサマリー統計
+// （精霊数・来訪合計・最も再訪が滞っている精霊）を表示する。検索語による絞り込みの
+// 影響は受けず、常にその季節全体（REVISIT_DATA基準）を対象に集計する。
+function renderSeasonSummary(seasonFilter) {
+  const el = document.getElementById('seasonSummary');
+  if (!el) return;
+  if (seasonFilter === 'all') { el.classList.remove('show'); el.textContent = ''; return; }
+  const seasonSpirits = REVISIT_DATA.filter(s => s.season === seasonFilter);
+  if (seasonSpirits.length === 0) { el.classList.remove('show'); el.textContent = ''; return; }
+  const totalVisits = seasonSpirits.reduce((sum, s) => sum + s.visits.length, 0);
+  const mostOverdue = [...seasonSpirits].sort((a, b) => lastVisitEndDate(a).localeCompare(lastVisitEndDate(b)))[0];
+  const neverCount = NEVER_REVISITED_DATA.filter(s => s.season === seasonFilter).length;
+  let line = t('seasonSummaryLine', {
+    season: LANG === 'en' ? seasonLabel(seasonFilter) : seasonFilter,
+    count: seasonSpirits.length,
+    visits: totalVisits,
+    mostOverdue: LANG === 'en' ? mostOverdue.nameEn : mostOverdue.nameJa,
+    days: daysSince(lastVisitEndDate(mostOverdue))
+  });
+  if (neverCount > 0) line += t('seasonSummaryNeverLine', { n: neverCount });
+  el.textContent = line;
+  el.classList.add('show');
+}
+
 function renderList() {
-  const q = normalizeSearchText(document.getElementById('searchInput').value.trim());
+  const rawSearch = document.getElementById('searchInput').value.trim();
+  const q = normalizeSearchText(rawSearch);
   const seasonFilter = document.getElementById('seasonFilter').value;
   const sortMode = document.getElementById('sortMode').value;
 
   // フィルターが1つでも既定値から変わっているときだけ「全てクリア」ボタンを表示する
   const clearBtn = document.getElementById('clearAllFiltersBtn');
   if (clearBtn) {
-    const anyFilterActive = !!q || seasonFilter !== 'all' || sortMode !== 'latest';
+    const anyFilterActive = !!q || seasonFilter !== 'all' || sortMode !== 'latest' || svOnlyFilterActive;
     clearBtn.style.display = anyFilterActive ? '' : 'none';
   }
 
   let list = REVISIT_DATA.filter(s => {
     if (seasonFilter !== 'all' && s.season !== seasonFilter) return false;
+    if (svOnlyFilterActive && !hasSvVisit(s)) return false;
     if (!q) return true;
     const yomi = SPIRIT_YOMI[s.nameJa] ? normalizeSearchText(SPIRIT_YOMI[s.nameJa]) : '';
     return normalizeSearchText(s.nameJa).includes(q) || normalizeSearchText(s.nameEn).includes(q) || yomi.includes(q);
@@ -813,11 +976,20 @@ function renderList() {
     list = [...list].sort((a, b) => b.visits.length - a.visits.length);
   } else if (sortMode === 'daysSince') {
     list = [...list].sort((a, b) => lastVisitEndDate(a).localeCompare(lastVisitEndDate(b)));
+  } else if (sortMode === 'ongoingFirst') {
+    // 🟢 進行中の再訪がある精霊を先頭に。それ以外は通常の「最新の来訪順」で並べる。
+    list = [...list].sort((a, b) => {
+      const oa = hasOngoingVisit(a) ? 1 : 0, ob = hasOngoingVisit(b) ? 1 : 0;
+      if (oa !== ob) return ob - oa;
+      return lastVisitEndDate(b).localeCompare(lastVisitEndDate(a));
+    });
   } else {
     list = [...list].sort((a, b) => lastVisitEndDate(b).localeCompare(lastVisitEndDate(a)));
   }
 
   document.getElementById('filterStats').textContent = t('filterStats', { shown: list.length, total: REVISIT_DATA.length });
+  renderSeasonSummary(seasonFilter);
+  updateFilterHash(rawSearch, seasonFilter);
 
   const container = document.getElementById('spiritList');
   if (list.length === 0) {
@@ -833,11 +1005,17 @@ function renderList() {
     const chips = s.visits.map(v => {
       const cls = v.type === 'SV' ? 'sv' : (v.type === 'TS-Error' ? 'err' : '');
       const label = typeLabel(v.type);
-      return `<span class="visit-chip ${cls}" title="${label}">${formatDate(v.date)}</span>`;
+      // 🟢 endDateのある来訪（主にSV）は開始日〜終了日の範囲で表示し、今日時点で
+      // まだ終了日を過ぎていなければ進行中マークを添える（進行中/終了済みの区別）。
+      const dateLabel = v.endDate ? `${formatDate(v.date)}–${formatDate(v.endDate)}` : formatDate(v.date);
+      const ongoing = isOngoingVisit(v);
+      const titleText = ongoing ? t('visitOngoingTitle', { type: label }) : label;
+      return `<span class="visit-chip ${cls}" title="${escapeHtml(titleText)}">${dateLabel}${ongoing ? ' 🟢' : ''}</span>`;
     }).join('');
     const rankBadge = overdueRanks
       ? `<span class="spirit-rank-badge" title="${escapeHtml(t('rankTitle'))}">${escapeHtml(t('rankLabel', { rank: overdueRanks.get(s.nameJa) }))}</span>`
       : '';
+    const ongoingBadge = hasOngoingVisit(s) ? `<span class="spirit-badge ongoing">${escapeHtml(t('ongoingBadge'))}</span>` : '';
     return `
       <div class="spirit-card">
         <div class="spirit-icon">
@@ -848,6 +1026,7 @@ function renderList() {
           <span class="spirit-name-ja">${escapeHtml(s.nameJa)}</span>
           <div class="spirit-name-en">${escapeHtml(s.nameEn)}</div>
           <div class="spirit-meta">
+            ${ongoingBadge}
             <span class="spirit-badge">${escapeHtml(LANG === 'en' ? seasonLabel(s.season) : s.season)}</span>
             <span class="spirit-badge area">${escapeHtml(LANG === 'en' ? s.area : areaJa(s.area))}</span>
           </div>
@@ -858,16 +1037,41 @@ function renderList() {
   }).join('');
 }
 
+// 🔍 未再訪セクション自前の検索・季節フィルター（メインリストのrenderList()と同じ
+// normalizeSearchText()+SPIRIT_YOMIによる読み仮名検索の考え方をそのまま踏襲）。
 function renderNeverRevisited() {
-  const list = [...NEVER_REVISITED_DATA].sort((a, b) => {
+  const searchInput = document.getElementById('neverRevisitedSearchInput');
+  const seasonSelect = document.getElementById('neverRevisitedSeasonFilter');
+  const q = normalizeSearchText(searchInput ? searchInput.value.trim() : '');
+  const seasonFilter = seasonSelect ? seasonSelect.value : 'all';
+
+  // 見出し（折り畳みを開く前から見える件数）は絞り込みに関わらず常に全体件数を示す。
+  // 絞り込み後の件数は本文側の#neverRevisitedFilterStatsで別途表示する。
+  document.getElementById('neverRevisitedCount').textContent = t('neverRevisitedCount', { n: NEVER_REVISITED_DATA.length });
+
+  let list = NEVER_REVISITED_DATA.filter(s => {
+    if (seasonFilter !== 'all' && s.season !== seasonFilter) return false;
+    if (!q) return true;
+    const yomi = SPIRIT_YOMI[s.nameJa] ? normalizeSearchText(SPIRIT_YOMI[s.nameJa]) : '';
+    return normalizeSearchText(s.nameJa).includes(q) || normalizeSearchText(s.nameEn).includes(q) || yomi.includes(q);
+  });
+
+  list = [...list].sort((a, b) => {
     const ia = SEASON_ORDER.indexOf(a.season), ib = SEASON_ORDER.indexOf(b.season);
     if (ia !== ib) return ia - ib;
     return a.nameJa.localeCompare(b.nameJa, 'ja');
   });
 
-  document.getElementById('neverRevisitedCount').textContent = t('neverRevisitedCount', { n: list.length });
+  const statsEl = document.getElementById('neverRevisitedFilterStats');
+  if (statsEl) statsEl.textContent = t('filterStats', { shown: list.length, total: NEVER_REVISITED_DATA.length });
 
-  document.getElementById('neverRevisitedList').innerHTML = list.map(s => `
+  const listEl = document.getElementById('neverRevisitedList');
+  if (list.length === 0) {
+    listEl.innerHTML = `<div class="empty-state">${t('emptyState')}</div>`;
+    return;
+  }
+
+  listEl.innerHTML = list.map(s => `
     <div class="spirit-card">
       <div class="spirit-icon${s.imageUrl ? '' : ' no-image'}">
         ${s.imageUrl
@@ -1149,8 +1353,10 @@ document.addEventListener('keydown', function (e) {
 applyI18n();
 applyThemeToDOM();
 populateSeasonFilter();
-renderList();
+populateNeverRevisitedSeasonFilter();
+applyFilterHash(); // #season=/#search= を読み取り、内部でrenderList()まで行う
 renderNeverRevisited();
+window.addEventListener('hashchange', applyFilterHash);
 </script>
 
 </body>
