@@ -108,15 +108,11 @@
     .sidebar-overlay.show { display: block; }
 
     .app-layout { max-width: 720px; margin: 0 auto; padding: 0 16px; }
-    @media (min-width: 850px) { .app-layout { max-width: 960px; display: flex; gap: 20px; align-items: flex-start; } }
-    .wrap { flex: 1; min-width: 0; }
 
     .sidebar {
-      width: 200px; flex-shrink: 0; position: sticky; top: 58px;
       background: var(--card); border-radius: var(--r); padding: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.07); display: none; margin-top: 22px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07); display: none;
     }
-    @media (min-width: 850px) { .sidebar { display: block; } }
     .sidebar.sidebar-open {
       display: flex !important; flex-direction: column; position: fixed; top: 0; left: 0;
       height: 100%; width: 240px; z-index: 500; overflow-y: auto; margin-top: 0;
@@ -1125,25 +1121,6 @@ function toggleSidebar() {
     }
     sidebarOpenerEl = null;
   }
-}
-
-// 📱→🖥️ モバイル幅でドロワーを開いたまま、ウィンドウのリサイズやタブレットの回転で
-// ビューポートが850px以上（サイドバー常時表示のデスクトップレイアウト、
-// `@media (min-width: 850px) { .sidebar { display: block } }`）をまたいでしまった場合の保険。
-// この瞬間から.sidebar-toggle-btnはvisibility:hiddenになり再オープンの手段が消える上、
-// オーバーレイと開いたままのドロワーが視覚的に残り続けてしまうため、matchMediaで
-// 850px境界をまたいだ瞬間を直接検知し、開いていればtoggleSidebar()で閉じる。
-const desktopSidebarMQ = window.matchMedia('(min-width: 850px)');
-function handleSidebarViewportChange(e) {
-  if (e.matches && document.getElementById('sidebar').classList.contains('sidebar-open')) {
-    toggleSidebar();
-  }
-}
-if (desktopSidebarMQ.addEventListener) {
-  desktopSidebarMQ.addEventListener('change', handleSidebarViewportChange);
-} else if (desktopSidebarMQ.addListener) {
-  // Safari 13以前など、addEventListenerを持たない古いMediaQueryList向けのフォールバック
-  desktopSidebarMQ.addListener(handleSidebarViewportChange);
 }
 
 /* ================================================================
