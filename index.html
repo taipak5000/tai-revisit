@@ -215,6 +215,25 @@
        （.spirit-badgeと同じシアン系トークンを流用し、テーマ別の上書きにも自動追従する） */
     .spirit-rank-badge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--cyan-bg); color: var(--cyan-d); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
+    /* 📤 精霊ごとの来訪履歴ワンタップ共有ボタン（.filter-clear-btnと同じ地味なピル配色を流用）。
+       spirit-cardの中で唯一クリック可能な要素なので、visit-countの下に単独行として置く。 */
+    .spirit-share-btn {
+      display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
+      font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+      background: var(--bg); color: var(--text-2); border: 1px solid var(--sep); white-space: nowrap;
+    }
+    .spirit-share-btn:hover { border-color: var(--cyan); color: var(--cyan-d); }
+
+    /* 📅 進行中/次回の特別来訪セクションの「カレンダーに追加」ボタン。
+       .spirit-badgeと同じシアン系トークンだが、クリック可能なことが分かるよう
+       ホバー時に塗りつぶしへ切り替える（他の淡色ピルボタンとは区別する）。 */
+    .calendar-add-btn {
+      display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
+      font-size: 11.5px; font-weight: 700; padding: 5px 11px; border-radius: 999px;
+      background: var(--cyan-bg); color: var(--cyan-d); border: 1px solid transparent; white-space: nowrap;
+    }
+    .calendar-add-btn:hover { background: var(--cyan); color: #fff; }
+
     .empty-state { text-align: center; padding: 40px 16px; color: var(--text-2); font-size: 13px; }
 
     /* ── 折り畳み: まだ再訪が来ていない精霊 ─────────── */
@@ -235,6 +254,25 @@
     .collapse-section .filter-row { margin-top: 10px; }
     .collapse-section .filter-stats { padding: 8px 2px 0; }
     .spirit-icon.no-image { display: flex; align-items: center; justify-content: center; font-size: 22px; opacity: 0.5; }
+
+    /* ── 📊 全シーズンの達成度概観（折り畳み、collapse-sectionと同じ<details>方式） ─── */
+    .season-overview-overall {
+      font-size: 12.5px; font-weight: 600; color: var(--cyan-d); background: var(--cyan-bg);
+      border-radius: var(--r-sm); padding: 10px 12px; margin-top: 10px; line-height: 1.6;
+    }
+    /* 季節ごとの行はタップでその季節に絞り込めるボタン（<button>要素を使うことで
+       Tab/Enter/Spaceでの操作性を追加のARIA属性なしに確保できる） */
+    .season-overview-row {
+      display: block; width: 100%; text-align: left; padding: 10px 2px; border-bottom: 0.5px solid var(--sep);
+    }
+    .season-overview-row:last-child { border-bottom: none; }
+    .season-overview-row:hover .season-overview-name { color: var(--cyan-d); }
+    .season-overview-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .season-overview-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .season-overview-pct { font-size: 12px; font-weight: 700; color: var(--cyan-d); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+    .season-overview-track { height: 6px; border-radius: 999px; background: var(--bg); margin-top: 6px; overflow: hidden; }
+    .season-overview-fill { height: 100%; background: var(--cyan); border-radius: 999px; }
+    .season-overview-sub { font-size: 11px; color: var(--text-2); margin-top: 4px; }
 
     /* ── ⚙️ 表示設定モーダル（ダークモード切替・キーボードショートカット） ───────── */
     .settings-modal-overlay {
@@ -284,6 +322,16 @@
 
     footer { text-align: center; padding: 24px 16px; color: var(--text-2); font-size: 13px; border-top: 1px solid var(--sep); margin-top: 40px; line-height: 1.6; }
     footer a { color: var(--cyan-d); text-decoration: none; }
+
+    /* 🔔 共有・カレンダー登録の結果通知トースト（taipak5000.github.io系の他ツールと
+       同じ見た目・位置・showToast()の考え方を踏襲。site-dockの高さ分だけ底上げする）。 */
+    .toast {
+      position: fixed; bottom: calc(84px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%) translateY(20px);
+      background: rgba(28,28,30,0.92); color: #fff; padding: 10px 18px; border-radius: 999px;
+      font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.2s, transform 0.2s; z-index: 2000;
+      pointer-events: none; white-space: pre-line; text-align: center;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     /* ── 🧭 site-dock: ページ下部固定のクイックアクセスバー（ハンバーガーサイドバーと併存） ──
        セレクタは `nav.site-dock`（要素+クラス）にして、汎用の `nav { position:sticky; top:0; ... }`
@@ -394,11 +442,30 @@
         <span data-i18n="introPart2">プロジェクトを基にしています。</span></p>
     </div>
 
+    <!-- 📅 進行中/次回の特別来訪を.ics形式でカレンダーに追加できる一覧。
+         フィルターの影響を受けない固定表示のため、専用の<div>にJSで直接描画する。 -->
+    <p class="sec-label" data-i18n="upcomingSectionLabel">📅 進行中・次回の特別来訪</p>
+    <div class="sec-sub" data-i18n="upcomingSectionSub">現在進行中、またはこれから始まる特別来訪（Returning Spirits）の一覧です。「カレンダーに追加」から.ics形式で予定を追加できます。</div>
+    <div class="spirit-list" id="upcomingRevisitsList"><!-- JS --></div>
+
+    <!-- 📊 シーズン横断の来訪達成度概観。行数が多いため既定は折り畳んでおく。 -->
+    <details class="collapse-section" id="seasonOverviewSection">
+      <summary class="collapse-summary">
+        <span data-i18n="seasonOverviewSummary">📊 シーズン別 再訪達成度</span>
+      </summary>
+      <div class="collapse-note" data-i18n="seasonOverviewNote">季節ごとに、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度でも来た精霊の割合をまとめています。行をタップするとその季節で絞り込みます。</div>
+      <div class="season-overview-overall" id="seasonOverviewOverall"></div>
+      <div id="seasonOverviewList"><!-- JS --></div>
+    </details>
+
     <div class="filter-card">
       <div class="filter-row">
         <input type="search" class="filter-search" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="🔍 精霊名で検索…" oninput="renderList()">
         <select class="filter-select" id="seasonFilter" onchange="renderList()">
           <option value="all" data-i18n="seasonAll">すべての季節</option>
+        </select>
+        <select class="filter-select" id="areaFilter" onchange="renderList()">
+          <option value="all" data-i18n="areaAll">すべてのエリア</option>
         </select>
         <select class="filter-select" id="sortMode" onchange="renderList()">
           <option value="latest" data-i18n="sortLatest">最新の来訪順</option>
@@ -652,7 +719,26 @@ const I18N = {
     svOnlyChipLabel: '🔁 特別来訪ありのみ',
     svOnlyChipTitle: '来訪履歴に特別来訪（Returning Spirits）が1回以上含まれる精霊のみ表示します',
     seasonSummaryLine: '{season}　・　精霊 {count} 体　・　来訪合計 {visits} 回　・　最も滞っているのは「{mostOverdue}」（{days}日）',
-    seasonSummaryNeverLine: '　・　未再訪 {n} 体'
+    seasonSummaryNeverLine: '　・　未再訪 {n} 体',
+    areaAll: 'すべてのエリア',
+    shareBtnLabel: '📤 共有',
+    shareBtnTitle: '来訪履歴をワンタップで共有します',
+    shareSnippetTemplate: '🕊️ {name}\n季節: {season}\n来訪履歴: {visits}',
+    shareCopiedToast: '来訪履歴をコピーしました',
+    shareFailedToast: 'コピーに失敗しました',
+    seasonOverviewSummary: '📊 シーズン別 再訪達成度',
+    seasonOverviewNote: '季節ごとに、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度でも来た精霊の割合をまとめています。行をタップするとその季節で絞り込みます。',
+    seasonOverviewOverallLine: '全季節合計: {revisited} / {total} 精霊が再訪済み（{pct}%）',
+    seasonOverviewSubLine: '{revisited} / {total} 精霊　・　来訪合計 {visits} 回',
+    upcomingSectionLabel: '📅 進行中・次回の特別来訪',
+    upcomingSectionSub: '現在進行中、またはこれから始まる特別来訪（Returning Spirits）の一覧です。「カレンダーに追加」から.ics形式で予定を追加できます。',
+    upcomingEmptyState: '現在、進行中・予定されている特別来訪はありません。',
+    calendarOngoingBadge: '🟢 進行中',
+    calendarNextBadge: '🔜 次回予定',
+    calendarAddBtn: '📅 カレンダーに追加',
+    calendarAddBtnTitle: '.icsファイルをダウンロードしてカレンダーに追加します',
+    toastIcsDownloaded: '.icsファイルをダウンロードしました',
+    toastIcsFailed: 'カレンダーファイルの作成に失敗しました'
   },
   en: {
     navTitle: '🕊️ Revisit Spirit Database',
@@ -722,7 +808,26 @@ const I18N = {
     svOnlyChipLabel: '🔁 Returning Spirits Only',
     svOnlyChipTitle: 'Show only spirits whose visit history includes at least one Returning Spirits event',
     seasonSummaryLine: '{season} · {count} spirits · {visits} total visits · most overdue: {mostOverdue} ({days}d)',
-    seasonSummaryNeverLine: ' · {n} never revisited'
+    seasonSummaryNeverLine: ' · {n} never revisited',
+    areaAll: 'All Areas',
+    shareBtnLabel: '📤 Share',
+    shareBtnTitle: 'Share this visit history with one tap',
+    shareSnippetTemplate: '🕊️ {name}\nSeason: {season}\nVisit history: {visits}',
+    shareCopiedToast: 'Copied visit history to clipboard',
+    shareFailedToast: 'Failed to copy',
+    seasonOverviewSummary: '📊 Season Achievement Overview',
+    seasonOverviewNote: 'Shows, for each season, the share of spirits that have had at least one Traveling Spirit or Returning Spirits visit. Tap a row to filter the list by that season.',
+    seasonOverviewOverallLine: 'All seasons: {revisited} / {total} spirits revisited ({pct}%)',
+    seasonOverviewSubLine: '{revisited} / {total} spirits · {visits} total visits',
+    upcomingSectionLabel: '📅 Ongoing & Next Returning Spirits',
+    upcomingSectionSub: 'Returning Spirits currently active or scheduled to start soon. Use "Add to Calendar" to save the dates as an .ics file.',
+    upcomingEmptyState: 'No ongoing or upcoming Returning Spirits right now.',
+    calendarOngoingBadge: '🟢 Ongoing',
+    calendarNextBadge: '🔜 Coming Up',
+    calendarAddBtn: '📅 Add to Calendar',
+    calendarAddBtnTitle: 'Download an .ics file to add this to your calendar',
+    toastIcsDownloaded: 'Downloaded the .ics file',
+    toastIcsFailed: 'Failed to create the calendar file'
   }
 };
 
@@ -778,8 +883,11 @@ function setLang(lang) {
   applyThemeToDOM(); // ダーク/ライト表示ボタンの文言（言語依存）を更新
   populateSeasonFilter();
   populateNeverRevisitedSeasonFilter();
+  populateAreaFilter();
   renderList();
   renderNeverRevisited();
+  renderSeasonOverview();
+  renderUpcomingRevisits();
   syncSettingsLangButtons();
 }
 
@@ -850,9 +958,9 @@ function populateSeasonFilterFor(selectId, dataArray) {
   // 値（生の日本語季節名）は言語に関わらず不変なので、選択状態を復元する
   if (prevValue && seasons.includes(prevValue)) select.value = prevValue;
 }
-// 🔗 #season=<季節名>&search=<検索語> 形式のディープリンク。他ツールの
+// 🔗 #season=<季節名>&area=<エリア名>&search=<検索語> 形式のディープリンク。他ツールの
 // #spirit=<精霊名>（location.hash.match(/^#spirit=(.+)$/)で読み取り、hashchangeでも
-// 追従する設計）と同じ考え方をこのサイト自身の検索・季節フィルターに適用したもの。
+// 追従する設計）と同じ考え方をこのサイト自身の検索・季節・エリアフィルターに適用したもの。
 // tai-infoのapplyHashRoute()/showTab()と同様、history.replaceState()で書き戻す方式
 // （pushStateではないためフィルター操作のたびに履歴が積み上がることはない）。
 function parseFilterHash() {
@@ -863,17 +971,18 @@ function parseFilterHash() {
     const eq = pair.indexOf('=');
     if (eq === -1) return;
     const key = pair.slice(0, eq);
-    if (key !== 'season' && key !== 'search') return;
+    if (key !== 'season' && key !== 'search' && key !== 'area') return;
     try { result[key] = decodeURIComponent(pair.slice(eq + 1)); } catch (e) { /* 不正なエンコードは無視 */ }
   });
   return result;
 }
 
-// 現在の検索語・季節フィルターをURLハッシュへ反映する（renderList()の末尾から呼ぶ）。
-// 両方とも既定値（未入力／すべての季節）ならハッシュ自体を取り除く。
-function updateFilterHash(searchValue, seasonValue) {
+// 現在の検索語・季節・エリアフィルターをURLハッシュへ反映する（renderList()の末尾から呼ぶ）。
+// いずれも既定値（未入力／すべての季節／すべてのエリア）ならハッシュ自体を取り除く。
+function updateFilterHash(searchValue, seasonValue, areaValue) {
   const parts = [];
   if (seasonValue && seasonValue !== 'all') parts.push('season=' + encodeURIComponent(seasonValue));
+  if (areaValue && areaValue !== 'all') parts.push('area=' + encodeURIComponent(areaValue));
   if (searchValue) parts.push('search=' + encodeURIComponent(searchValue));
   const newUrl = location.pathname + location.search + (parts.length ? '#' + parts.join('&') : '');
   history.replaceState(null, '', newUrl);
@@ -890,6 +999,10 @@ function applyFilterHash() {
   const seasonVal = parsed.season || 'all';
   const validValues = Array.from(seasonSelect.options).map(o => o.value);
   seasonSelect.value = validValues.includes(seasonVal) ? seasonVal : 'all';
+  const areaSelect = document.getElementById('areaFilter');
+  const areaVal = parsed.area || 'all';
+  const validAreaValues = Array.from(areaSelect.options).map(o => o.value);
+  areaSelect.value = validAreaValues.includes(areaVal) ? areaVal : 'all';
   renderList();
 }
 
@@ -897,6 +1010,25 @@ function populateSeasonFilter() { populateSeasonFilterFor('seasonFilter', REVISI
 // 🔍 未再訪セクション自前の季節フィルター（NEVER_REVISITED_DATAにしか登場しない
 // 季節も含まれるため、REVISIT_DATA用のオプション一覧とは別に生成する）。
 function populateNeverRevisitedSeasonFilter() { populateSeasonFilterFor('neverRevisitedSeasonFilter', NEVER_REVISITED_DATA); }
+
+// 🗺️ 季節フィルターと併用できるエリア絞り込み用の<select>を構築する。
+// 表示順はAREA_JA（SEASON_ORDERと同じ考え方の固定順序表）のキー順を流用し、
+// 万一そこに無い値があれば末尾にアルファベット順で追加する。
+function populateAreaFilter() {
+  const usedAreas = new Set(REVISIT_DATA.map(s => s.area));
+  const known = Object.keys(AREA_JA).filter(a => usedAreas.has(a));
+  const unknown = [...usedAreas].filter(a => !AREA_JA[a]).sort((a, b) => a.localeCompare(b));
+  const areas = [...known, ...unknown];
+  const select = document.getElementById('areaFilter');
+  const prevValue = select.value;
+  while (select.options.length > 1) select.remove(1);
+  areas.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a; opt.textContent = LANG === 'en' ? a : areaJa(a);
+    select.appendChild(opt);
+  });
+  if (prevValue && areas.includes(prevValue)) select.value = prevValue;
+}
 
 // 🔁 「特別来訪ありのみ」クイックフィルターチップの状態（季節ドロップダウンとは別枠、
 // 検索/季節/並び順のような<select>やテキスト入力ではなくトグルボタンなのでここで単独管理する）。
@@ -928,11 +1060,50 @@ function isOngoingVisit(v) {
 }
 function hasOngoingVisit(s) { return s.visits.some(isOngoingVisit); }
 
+// 📤 精霊カードの「共有」ボタン用に、来訪履歴のテキストスニペットを組み立てる。
+// 非公開サイト（tai-revisit）自体のURLはあえて含めない（このスニペットはSNS等
+// 公開の場に貼られる想定のため、生態系の非公開サイト実名/リンク非露出ルールに
+// 合わせ、共有先が別サイトかどうかに関わらずURLそのものを載せない）。
+function buildShareSnippet(s) {
+  const sep = LANG === 'en' ? ', ' : '、';
+  const visitsLine = s.visits.map(v => {
+    const dateLabel = v.endDate ? `${formatDate(v.date)}–${formatDate(v.endDate)}` : formatDate(v.date);
+    return `${dateLabel}（${typeLabel(v.type)}）`;
+  }).join(sep);
+  const name = LANG === 'en' ? `${s.nameEn} (${s.nameJa})` : `${s.nameJa}（${s.nameEn}）`;
+  const season = LANG === 'en' ? seasonLabel(s.season) : s.season;
+  return t('shareSnippetTemplate', { name, season, visits: visitsLine });
+}
+
+// 📤 Web Share API（主にモバイル）が使える環境ではそちらを、使えない環境
+// （多くのデスクトップブラウザ）ではクリップボードへのコピーにフォールバックする。
+async function shareSpirit(nameJa) {
+  const s = REVISIT_DATA.find(x => x.nameJa === nameJa);
+  if (!s) return;
+  const text = buildShareSnippet(s);
+  if (navigator.share) {
+    try {
+      await navigator.share({ text });
+      return;
+    } catch (err) {
+      if (err && err.name === 'AbortError') return; // ユーザーが共有シートをキャンセル
+      // navigator.share自体が失敗した場合はクリップボードへフォールバックする
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast(t('shareCopiedToast'));
+  } catch (err) {
+    showToast(t('shareFailedToast'));
+  }
+}
+
 // 🧹 検索語＋季節フィルター＋並び順＋「特別来訪ありのみ」チップをまとめて既定値
 // （未入力／すべての季節／最新の来訪順／チップOFF）に戻す
 function clearAllFilters() {
   document.getElementById('searchInput').value = '';
   document.getElementById('seasonFilter').value = 'all';
+  document.getElementById('areaFilter').value = 'all';
   document.getElementById('sortMode').value = 'latest';
   svOnlyFilterActive = false;
   const svChip = document.getElementById('svOnlyChip');
@@ -964,21 +1135,207 @@ function renderSeasonSummary(seasonFilter) {
   el.classList.add('show');
 }
 
+/* ================================================================
+   📅 進行中/次回の特別来訪を.ics形式でカレンダーに追加する機能。
+   endDateを持つ来訪（主にSV、まれにTSの周期来訪も範囲を持つ）のうち、
+   終了日が今日以降のものだけを対象にする（終了済みは対象外）。
+   isOngoingVisit()と同じ「進行中」の定義に加え、まだ始まっていない
+   予告来訪（date > today）も「次回」として一覧に含める。
+   ================================================================ */
+function getUpcomingRevisits() {
+  const todayStr = getTodayStr();
+  const items = [];
+  REVISIT_DATA.forEach(s => {
+    s.visits.forEach(v => {
+      if (!v.endDate) return;
+      if (v.endDate < todayStr) return;
+      items.push({ spirit: s, visit: v, ongoing: v.date <= todayStr });
+    });
+  });
+  // 進行中を先に、以降は開始日が近い順
+  items.sort((a, b) => {
+    if (a.ongoing !== b.ongoing) return a.ongoing ? -1 : 1;
+    return a.visit.date.localeCompare(b.visit.date);
+  });
+  return items;
+}
+
+function renderUpcomingRevisits() {
+  const container = document.getElementById('upcomingRevisitsList');
+  if (!container) return;
+  const items = getUpcomingRevisits();
+  if (items.length === 0) {
+    container.innerHTML = `<div class="empty-state">${t('upcomingEmptyState')}</div>`;
+    return;
+  }
+  container.innerHTML = items.map(({ spirit: s, visit: v, ongoing }) => {
+    const dateLabel = `${formatDate(v.date)}–${formatDate(v.endDate)}`;
+    const badge = ongoing
+      ? `<span class="spirit-badge ongoing">${escapeHtml(t('calendarOngoingBadge'))}</span>`
+      : `<span class="spirit-badge">${escapeHtml(t('calendarNextBadge'))}</span>`;
+    return `
+      <div class="spirit-card">
+        <div class="spirit-icon">
+          <img src="${s.imageUrl}" alt="${escapeHtml(s.nameJa)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.classList.add('no-image')">
+          <span class="spirit-icon-fallback">🕊️</span>
+        </div>
+        <div class="spirit-body">
+          <span class="spirit-name-ja">${escapeHtml(s.nameJa)}</span>
+          <div class="spirit-name-en">${escapeHtml(s.nameEn)}</div>
+          <div class="spirit-meta">
+            ${badge}
+            <span class="spirit-badge">${escapeHtml(LANG === 'en' ? seasonLabel(s.season) : s.season)}</span>
+            <span class="spirit-badge area">${escapeHtml(LANG === 'en' ? s.area : areaJa(s.area))}</span>
+          </div>
+          <div class="visit-list"><span class="visit-chip sv">${dateLabel}</span></div>
+          <button type="button" class="calendar-add-btn" title="${escapeHtml(t('calendarAddBtnTitle'))}"
+            onclick="downloadIcsForVisit('${escapeAttr(s.nameJa)}','${v.date}')">${escapeHtml(t('calendarAddBtn'))}</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// YYYY-MM-DD → YYYYMMDD（iCalendarの終日イベント日付表記）
+function icsDateCompact(dateStr) { return dateStr.replace(/-/g, ''); }
+// iCalendarの終日イベントはDTENDを「含まない」排他的な日付として扱うため、
+// 表示上の最終日（endDate）の翌日をDTENDに使う。
+function icsDatePlusOneDay(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + 1);
+  return dt.getUTCFullYear() + String(dt.getUTCMonth() + 1).padStart(2, '0') + String(dt.getUTCDate()).padStart(2, '0');
+}
+// RFC5545のTEXT値エスケープ（バックスラッシュ・カンマ・セミコロン・改行）
+function icsEscapeText(str) {
+  return String(str).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+}
+// 非公開サイト（tai-revisit）自体のURLはDESCRIPTIONにも含めない（共有スニペットと
+// 同じ理由。.icsは端末のカレンダーに残り続けるため、なおさらURLは持たせない）。
+function buildIcsContent(s, v) {
+  const dtStamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const uid = `tai-revisit-${s.nameEn.replace(/[^A-Za-z0-9]+/g, '')}-${v.date}@taipak5000.github.io`;
+  const summary = `${s.nameJa}（${s.nameEn}） ${typeLabel(v.type)}`;
+  const description = `${areaJa(s.area)} (${s.area})`;
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//tai-revisit//Revisit Spirit Database//JA',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTAMP:${dtStamp}`,
+    `DTSTART;VALUE=DATE:${icsDateCompact(v.date)}`,
+    `DTEND;VALUE=DATE:${icsDatePlusOneDay(v.endDate)}`,
+    `SUMMARY:${icsEscapeText(summary)}`,
+    `DESCRIPTION:${icsEscapeText(description)}`,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ];
+  return lines.join('\r\n');
+}
+
+// 📅 「カレンダーに追加」ボタンから呼ぶ。visit.dateはendDateを持つ来訪の中で
+// 一意になる想定（同じ精霊が同じ開始日で複数の範囲来訪を持つことはない）。
+function downloadIcsForVisit(nameJa, date) {
+  const s = REVISIT_DATA.find(x => x.nameJa === nameJa);
+  if (!s) return;
+  const v = s.visits.find(x => x.date === date && x.endDate);
+  if (!v) return;
+  try {
+    const blob = new Blob([buildIcsContent(s, v)], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${s.nameEn.replace(/[^A-Za-z0-9]+/g, '-')}-${v.date}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast(t('toastIcsDownloaded'));
+  } catch (e) {
+    showToast(t('toastIcsFailed'));
+  }
+}
+
+/* ================================================================
+   📊 全シーズンの来訪達成度概観（シーズンごとに、来訪履歴が1件以上ある精霊の
+   割合をSEASON_ORDER順に算出する）。REVISIT_DATAは「来訪履歴が1件以上ある精霊」
+   のみを収録しているため、そのままカウントすれば「達成済み」件数になる
+   （NEVER_REVISITED_DATAは同じ季節の「未達成」分を補うために使う）。
+   ================================================================ */
+function computeSeasonAchievement() {
+  const seasons = [...new Set([...REVISIT_DATA.map(s => s.season), ...NEVER_REVISITED_DATA.map(s => s.season)])];
+  seasons.sort((a, b) => {
+    const ia = SEASON_ORDER.indexOf(a), ib = SEASON_ORDER.indexOf(b);
+    if (ia === -1 && ib === -1) return a.localeCompare(b, 'ja');
+    if (ia === -1) return 1;
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
+  return seasons.map(season => {
+    const seasonRevisitData = REVISIT_DATA.filter(s => s.season === season);
+    const revisited = seasonRevisitData.length;
+    const neverRevisited = NEVER_REVISITED_DATA.filter(s => s.season === season).length;
+    const total = revisited + neverRevisited;
+    const totalVisits = seasonRevisitData.reduce((sum, s) => sum + s.visits.length, 0);
+    return { season, revisited, total, totalVisits, pct: total > 0 ? Math.round((revisited / total) * 100) : 0 };
+  });
+}
+
+function renderSeasonOverview() {
+  const listEl = document.getElementById('seasonOverviewList');
+  if (!listEl) return;
+  const rows = computeSeasonAchievement();
+
+  const overallEl = document.getElementById('seasonOverviewOverall');
+  if (overallEl) {
+    const totalRevisited = rows.reduce((sum, r) => sum + r.revisited, 0);
+    const totalAll = rows.reduce((sum, r) => sum + r.total, 0);
+    const overallPct = totalAll > 0 ? Math.round((totalRevisited / totalAll) * 100) : 0;
+    overallEl.textContent = t('seasonOverviewOverallLine', { revisited: totalRevisited, total: totalAll, pct: overallPct });
+  }
+
+  listEl.innerHTML = rows.map(r => {
+    const seasonDisplay = LANG === 'en' ? seasonLabel(r.season) : r.season;
+    return `
+      <button type="button" class="season-overview-row" onclick="jumpToSeasonFilter('${escapeAttr(r.season)}')">
+        <div class="season-overview-head">
+          <span class="season-overview-name">${escapeHtml(seasonDisplay)}</span>
+          <span class="season-overview-pct">${r.pct}%</span>
+        </div>
+        <div class="season-overview-track"><div class="season-overview-fill" style="width:${r.pct}%"></div></div>
+        <div class="season-overview-sub">${escapeHtml(t('seasonOverviewSubLine', { revisited: r.revisited, total: r.total, visits: r.totalVisits }))}</div>
+      </button>`;
+  }).join('');
+}
+
+// 📊 達成度概観の行をタップした際、その季節でメインリストを絞り込みつつ
+// フィルターカードまでスクロールする（quick-filter-chipと同じ「タップで絞り込む」導線）。
+function jumpToSeasonFilter(season) {
+  const select = document.getElementById('seasonFilter');
+  if (!select) return;
+  select.value = season;
+  renderList();
+  select.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 function renderList() {
   const rawSearch = document.getElementById('searchInput').value.trim();
   const q = normalizeSearchText(rawSearch);
   const seasonFilter = document.getElementById('seasonFilter').value;
+  const areaFilter = document.getElementById('areaFilter').value;
   const sortMode = document.getElementById('sortMode').value;
 
   // フィルターが1つでも既定値から変わっているときだけ「全てクリア」ボタンを表示する
   const clearBtn = document.getElementById('clearAllFiltersBtn');
   if (clearBtn) {
-    const anyFilterActive = !!q || seasonFilter !== 'all' || sortMode !== 'latest' || svOnlyFilterActive;
+    const anyFilterActive = !!q || seasonFilter !== 'all' || areaFilter !== 'all' || sortMode !== 'latest' || svOnlyFilterActive;
     clearBtn.style.display = anyFilterActive ? '' : 'none';
   }
 
   let list = REVISIT_DATA.filter(s => {
     if (seasonFilter !== 'all' && s.season !== seasonFilter) return false;
+    if (areaFilter !== 'all' && s.area !== areaFilter) return false;
     if (svOnlyFilterActive && !hasSvVisit(s)) return false;
     if (!q) return true;
     const yomi = SPIRIT_YOMI[s.nameJa] ? normalizeSearchText(SPIRIT_YOMI[s.nameJa]) : '';
@@ -1004,7 +1361,7 @@ function renderList() {
 
   document.getElementById('filterStats').textContent = t('filterStats', { shown: list.length, total: REVISIT_DATA.length });
   renderSeasonSummary(seasonFilter);
-  updateFilterHash(rawSearch, seasonFilter);
+  updateFilterHash(rawSearch, seasonFilter, areaFilter);
 
   const container = document.getElementById('spiritList');
   if (list.length === 0) {
@@ -1047,6 +1404,8 @@ function renderList() {
           </div>
           <div class="visit-list">${chips}</div>
           <div class="visit-count">${rankBadge}${t('visitCountLine', { count: s.visits.length, days: daysSince(lastVisitEndDate(s)) })}</div>
+          <button type="button" class="spirit-share-btn" title="${escapeHtml(t('shareBtnTitle'))}"
+            onclick="shareSpirit('${escapeAttr(s.nameJa)}')">${escapeHtml(t('shareBtnLabel'))}</button>
         </div>
       </div>`;
   }).join('');
@@ -1108,6 +1467,24 @@ function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[c]));
+}
+
+// 🔤 onclick="...('${...}')" のように単一引用符で囲んだ属性の中へ動的な文字列
+// （精霊名・季節名など）を埋め込む際のエスケープ（escapeHtml()はHTML実体参照化する
+// ため単一引用符自体は変換せず、この用途には使えない）。
+function escapeAttr(s) { return String(s).replace(/'/g, "\\'"); }
+
+// 🔔 共有・カレンダー登録の結果通知（taipak5000.github.io系の他ツールと同じ
+// showToast()の考え方。複数同時発火時は積み上げて両方見えるようにする）。
+function showToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  const stackIndex = document.querySelectorAll('.toast').length;
+  if (stackIndex > 0) el.style.bottom = `calc(84px + env(safe-area-inset-bottom) + ${stackIndex * 44}px)`;
+  document.body.appendChild(el);
+  setTimeout(() => el.classList.add('show'), 10);
+  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 1600);
 }
 
 // ♿ サイドバードロワーのフォーカス管理（開いた時に中へ移動・Tabで閉じ込め・閉じたら
@@ -1350,8 +1727,11 @@ applyI18n();
 applyThemeToDOM();
 populateSeasonFilter();
 populateNeverRevisitedSeasonFilter();
-applyFilterHash(); // #season=/#search= を読み取り、内部でrenderList()まで行う
+populateAreaFilter();
+applyFilterHash(); // #season=/#area=/#search= を読み取り、内部でrenderList()まで行う
 renderNeverRevisited();
+renderSeasonOverview();
+renderUpcomingRevisits();
 window.addEventListener('hashchange', applyFilterHash);
 </script>
 
