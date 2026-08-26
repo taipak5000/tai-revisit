@@ -387,7 +387,7 @@
     <span class="sidebar-nav-link current-tool" data-i18n="toolRevisitSelf">🕊️ 再訪精霊データベース（現在地）</span>
   </aside>
 
-  <div class="wrap">
+  <div>
     <div class="card" style="margin-top:14px;">
       <p><span data-i18n="introPart1">過去に来訪（Traveling Spirit）・特別来訪（Returning Spirits）した精霊の履歴を検索できる、閲覧専用の参考データベースです。所持チェックなどの記録機能はありません。データは</span>
         <a href="https://github.com/Silverfeelin/SkyGame-Data" target="_blank" rel="noopener noreferrer">SkyGame-Data</a>
@@ -792,9 +792,20 @@ function formatDate(d) {
   return `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}`;
 }
 
+// YYYY-MM-DD文字列表現の「今日」（isOngoingVisit/lastVisitEndDateで共用。
+// 辞書式比較がそのまま日付の前後判定になるため、ローカル日付ベースでDate化しない）
+function getTodayStr() {
+  const now = new Date();
+  return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+}
 // 最終来訪日（範囲のある特別来訪はendDateを終了日として優先）
+// 注: 開始日が今日より後（まだ始まっていない予告来訪）はここでの「最終来訪」に含めない。
+// 含めてしまうと、来訪開始前の精霊が「最終来訪から0日＝たった今来訪した」ことになり、
+// 日数表示や「最終来訪からの日数が長い順」ソート・順位バッジが実態と逆に狂ってしまうため。
 function lastVisitEndDate(s) {
-  const v = s.visits[s.visits.length - 1];
+  const todayStr = getTodayStr();
+  const started = s.visits.filter(v => v.date <= todayStr);
+  const v = started.length ? started[started.length - 1] : s.visits[s.visits.length - 1];
   return v.endDate || v.date;
 }
 function daysSince(dateStr) {
@@ -910,8 +921,7 @@ function hasSvVisit(s) { return s.visits.some(v => v.type === 'SV'); }
 // daysSince()と同じ「ローカル日付ベース」の考え方でDate化せず直接比較する。
 function isOngoingVisit(v) {
   if (!v.endDate) return false;
-  const now = new Date();
-  const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  const todayStr = getTodayStr();
   // 終了日だけでなく開始日もチェックする（開始日が未来の場合、終了日だけの判定だと
   // 来訪が始まる前から「進行中」と誤表示されてしまうため）
   return v.date <= todayStr && v.endDate >= todayStr;
