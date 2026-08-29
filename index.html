@@ -133,6 +133,8 @@
     }
     .sidebar-nav-link:hover { background: var(--bg); }
     .sidebar-nav-link.current-tool { background: var(--cyan-bg); color: var(--cyan-d); font-weight: 700; }
+    /* 精度に不安がある新機能であることを示す小さな注記（例: 楽譜づくり） */
+    .tool-badge-test { font-size: 9px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.3px; }
 
     .sec-label { font-size: 15px; font-weight: 700; color: var(--text); padding: 20px 4px 10px; display: flex; align-items: center; gap: 6px; }
     .sec-sub { font-size: 12px; color: var(--text-2); padding: 0 4px 12px; line-height: 1.7; }
@@ -430,6 +432,7 @@
     <a href="https://taipak5000.github.io/star-candle/" class="sidebar-nav-link" data-i18n="toolStarCandle">🕯️ 星のキャンドル計算機</a>
     <a href="https://taipak5000.github.io/companion/" class="sidebar-nav-link" data-i18n="toolCompanion">✨ 精霊同行ツール</a>
     <a href="https://taipak5000.github.io/wings/" class="sidebar-nav-link" data-i18n="toolWings">🪽 羽トラッカー</a>
+    <a href="https://taipak5000.github.io/tai-score/" class="sidebar-nav-link"><span class="tool-badge-test">test</span><span data-i18n="toolScore">🎵 楽譜づくり</span></a>
     <a href="https://taipak5000.github.io/tai-transfer/" class="sidebar-nav-link" data-i18n="toolTransfer">🔄 データ引継ぎ</a>
     <a href="https://taipak5000.github.io/tai-info/" class="sidebar-nav-link" data-i18n="toolInfo">⚙️ 設定・更新情報</a>
     <span class="sidebar-nav-link current-tool" data-i18n="toolRevisitSelf">🕊️ 再訪精霊データベース（現在地）</span>
@@ -662,9 +665,10 @@ const I18N = {
     toolStarCandle: '🕯️ 星のキャンドル計算機',
     toolCompanion: '✨ 精霊同行ツール',
     toolWings: '🪽 羽トラッカー',
+    toolScore: '🎵 楽譜づくり',
     toolTransfer: '🔄 データ引継ぎ',
     toolInfo: '⚙️ 設定・更新情報',
-    toolRevisitSelf: '🕊️ 再訪精霊データベース（現在地）',
+    toolRevisitSelf: '🕊️ 再訪精霊データベース',
     introPart1: '過去に来訪（Traveling Spirit）・特別来訪（Returning Spirits）した精霊の履歴を検索できる、閲覧専用の参考データベースです。所持チェックなどの記録機能はありません。データは',
     introPart2: 'プロジェクトを基にしています。',
     searchPlaceholder: '🔍 精霊名で検索…',
@@ -751,9 +755,10 @@ const I18N = {
     toolStarCandle: '🕯️ Star Candle Calculator',
     toolCompanion: '✨ Spirit Companion Tool',
     toolWings: '🪽 Wing Tracker',
+    toolScore: '🎵 Sheet Music Maker',
     toolTransfer: '🔄 Data Transfer',
     toolInfo: '⚙️ Settings & Updates',
-    toolRevisitSelf: '🕊️ Revisit Spirit Database (Current)',
+    toolRevisitSelf: '🕊️ Revisit Spirit Database',
     introPart1: 'A read-only reference database for looking up the visit history of Traveling Spirits and Returning Spirits. There is no ownership-tracking feature here. Data is based on the',
     introPart2: ' project.',
     searchPlaceholder: '🔍 Search by spirit name…',
