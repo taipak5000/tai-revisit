@@ -226,6 +226,17 @@
     }
     .spirit-share-btn:hover { border-color: var(--cyan); color: var(--cyan-d); }
 
+    /* 🔗 #spirit=<精霊名> ディープリンクでジャンプしてきた際、対象カードだけを
+       一時的に目立たせるワンショットのハイライト（applySpiritHash()から付与/解除する）。
+       box-shadowのkeyframesにしているのは、border色の変更だと.spirit-cardに
+       既存のborderが無くレイアウトへ影響が出ないため。--cyanはライト/ダーク双方で
+       定義済みなのでテーマ別の上書きは不要。 */
+    @keyframes spiritCardFlash {
+      0%, 100% { box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+      20%, 80% { box-shadow: 0 0 0 3px var(--cyan); }
+    }
+    .spirit-card-highlight { animation: spiritCardFlash 2s ease-in-out; }
+
     /* 📅 進行中/次回の特別来訪セクションの「カレンダーに追加」ボタン。
        .spirit-badgeと同じシアン系トークンだが、クリック可能なことが分かるよう
        ホバー時に塗りつぶしへ切り替える（他の淡色ピルボタンとは区別する）。 */
@@ -727,8 +738,8 @@ const I18N = {
     areaAll: 'すべてのエリア',
     shareBtnLabel: '📤 共有',
     shareBtnTitle: '来訪履歴をワンタップで共有します',
-    shareSnippetTemplate: '🕊️ {name}\n季節: {season}\n来訪履歴: {visits}',
-    shareCopiedToast: '来訪履歴をコピーしました',
+    shareSnippetTemplate: '🕊️ {name}\n季節: {season}\n来訪履歴: {visits}\n{url}',
+    shareCopiedToast: '来訪履歴とリンクをコピーしました',
     shareFailedToast: 'コピーに失敗しました',
     seasonOverviewSummary: '📊 シーズン別 再訪達成度',
     seasonOverviewNote: '季節ごとに、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度でも来た精霊の割合をまとめています。行をタップするとその季節で絞り込みます。',
@@ -817,8 +828,8 @@ const I18N = {
     areaAll: 'All Areas',
     shareBtnLabel: '📤 Share',
     shareBtnTitle: 'Share this visit history with one tap',
-    shareSnippetTemplate: '🕊️ {name}\nSeason: {season}\nVisit history: {visits}',
-    shareCopiedToast: 'Copied visit history to clipboard',
+    shareSnippetTemplate: '🕊️ {name}\nSeason: {season}\nVisit history: {visits}\n{url}',
+    shareCopiedToast: 'Copied visit history and link to clipboard',
     shareFailedToast: 'Failed to copy',
     seasonOverviewSummary: '📊 Season Achievement Overview',
     seasonOverviewNote: 'Shows, for each season, the share of spirits that have had at least one Traveling Spirit or Returning Spirits visit. Tap a row to filter the list by that season.',
@@ -968,6 +979,14 @@ function populateSeasonFilterFor(selectId, dataArray) {
 // 追従する設計）と同じ考え方をこのサイト自身の検索・季節・エリアフィルターに適用したもの。
 // tai-infoのapplyHashRoute()/showTab()と同様、history.replaceState()で書き戻す方式
 // （pushStateではないためフィルター操作のたびに履歴が積み上がることはない）。
+// ✅ 2026-08-30: このサイト自身も#spirit=<精霊名>を実装した（parseSpiritHash()/
+// applySpiritHash()を参照）。'spirit'キーをこのparseFilterHash()のホワイトリストに
+// 混ぜなかったのは、updateFilterHash()が末尾で「現在のフィルター状態」からハッシュを
+// 毎回丸ごと書き直す方式のため、そこにspirit=を混在させても次のrenderList()で
+// 消えてしまい持続できないから（このサイトのハッシュは元々「現在の状態」のミラーで
+// あって「開いた時の1回限りの指示」ではない）。#spirit=は後者の性質（1回読んだら
+// 役目を終える）なので、別関数として分離し、ハッシュが書き換わる前に値を読み切る
+// 方式にしている。詳細はparseSpiritHash()のコメント参照。
 function parseFilterHash() {
   const raw = location.hash.replace(/^#/, '');
   const result = {};
@@ -1009,6 +1028,67 @@ function applyFilterHash() {
   const validAreaValues = Array.from(areaSelect.options).map(o => o.value);
   areaSelect.value = validAreaValues.includes(areaVal) ? areaVal : 'all';
   renderList();
+}
+
+// 🔗 #spirit=<精霊名> ディープリンクの読み取り。parseFilterHash()と同じ
+// 「#hashを'&'区切りのkey=value列として読む」構造をそのまま流用しているが、
+// 'spirit'キーだけを見る専用関数として分離してある（理由はapplyFilterHash()の
+// 上のコメント参照）。値の照合はREVISIT_DATA.find(x => x.nameJa === nameJa)と
+// 同じ完全一致（大文字小文字や表記ゆれの正規化はしない）。
+// hashを引数で受け取れるようにしているのは、呼び出し側（ページ読み込み時・
+// hashchange時）がupdateFilterHash()によるハッシュの書き換わりより前に
+// location.hashのスナップショットを渡せるようにするため（省略時は現在の
+// location.hashを使う）。
+function parseSpiritHash(hash) {
+  const raw = (hash !== undefined ? hash : location.hash).replace(/^#/, '');
+  if (!raw) return null;
+  let found = null;
+  raw.split('&').forEach(pair => {
+    const eq = pair.indexOf('=');
+    if (eq === -1) return;
+    const key = pair.slice(0, eq);
+    if (key !== 'spirit') return;
+    try { found = decodeURIComponent(pair.slice(eq + 1)); } catch (e) { /* 不正なエンコードは無視 */ }
+  });
+  return found;
+}
+
+// #spiritList内から、指定した精霊名(nameJa)と完全一致するカードのDOM要素を探す。
+// 各カードにはrenderList()でdata-spirit-name属性を付与してあるので、
+// 動的な文字列をCSSセレクターへ埋め込む必要がなく（引用符等のエスケープが不要）、
+// 単純な配列探索で済ませている。
+function findSpiritCardEl(nameJa) {
+  const list = document.getElementById('spiritList');
+  if (!list) return null;
+  return Array.from(list.querySelectorAll('.spirit-card')).find(el => el.dataset.spiritName === nameJa) || null;
+}
+
+// 🔗 #spirit=<精霊名> ディープリンクの本体。REVISIT_DATA（shareSpirit()と同じ
+// 対象範囲。NEVER_REVISITED_DATAは来訪履歴も共有ボタンも無いため対象外）に
+// 実在する精霊名にだけ反応し、#spiritList内の該当カードまでスクロールして
+// 一時的にハイライトする。
+// 優先順位: #season=/#area=/#search=フィルターに阻まれて対象カードが現在
+// 表示されていない場合（例: #season=夏&spirit=<冬の精霊>のような組み合わせ）は、
+// #spirit=側を優先するものとし、フィルターを全解除してから再度探す
+// （＝このサイトでは#spirit=は#season=/#area=/#search=より優先される）。
+// それでも見つからない場合（該当精霊がREVISIT_DATAに存在しない等）は何もしない。
+function applySpiritHash(nameJa) {
+  if (!nameJa) return;
+  if (!REVISIT_DATA.some(s => s.nameJa === nameJa)) return;
+  let card = findSpiritCardEl(nameJa);
+  if (!card) {
+    clearAllFilters(); // フィルターに阻まれて非表示だった場合はリセットして再表示する
+    card = findSpiritCardEl(nameJa);
+  }
+  if (!card) return;
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // 同じカードへ短時間で再度ジャンプしてもハイライトが再生されるよう、
+  // 一旦クラスを外してreflowを挟んでから付け直す（付いたままclassListに
+  // addし直しても、ブラウザは「変化なし」とみなしkeyframesを再生しないため）。
+  card.classList.remove('spirit-card-highlight');
+  void card.offsetWidth;
+  card.classList.add('spirit-card-highlight');
+  setTimeout(() => card.classList.remove('spirit-card-highlight'), 2000);
 }
 
 function populateSeasonFilter() { populateSeasonFilterFor('seasonFilter', REVISIT_DATA); }
@@ -1065,10 +1145,22 @@ function isOngoingVisit(v) {
 }
 function hasOngoingVisit(s) { return s.visits.some(isOngoingVisit); }
 
+// 🔗 このページ自身のURL + #spirit=<精霊名> という、その精霊のカードへ直接
+// ジャンプできる共有用リンクを組み立てる（applySpiritHash()と対になる関数）。
+// location.hash（#season=等の現在のフィルター状態）は含めない。共有時点の
+// 閲覧者側の絞り込み状態はリンクを開く相手には無関係で、常に「この精霊の
+// カードを表示する」という意味だけを持つクリーンな#spirit=単体のURLにする。
+function buildSpiritUrl(nameJa) {
+  return location.origin + location.pathname + location.search + '#spirit=' + encodeURIComponent(nameJa);
+}
+
 // 📤 精霊カードの「共有」ボタン用に、来訪履歴のテキストスニペットを組み立てる。
-// 非公開サイト（tai-revisit）自体のURLはあえて含めない（このスニペットはSNS等
-// 公開の場に貼られる想定のため、生態系の非公開サイト実名/リンク非露出ルールに
-// 合わせ、共有先が別サイトかどうかに関わらずURLそのものを載せない）。
+// ⚠️ 以前はこのサイト（tai-revisit、非公開）自体のURLをあえて含めない方針
+// だったが、#spirit=ディープリンク（buildSpiritUrl()/applySpiritHash()）の
+// 追加に伴い方針変更: 共有ボタンの目的そのものが「このカードへのリンクを
+// 届けること」になったため、URLを含めないと機能として成立しない。
+// サイトが正式公開されるまでは、このURLを共有する運用ができるかどうか
+// （非公開のままでよいか）は別途要検討。
 function buildShareSnippet(s) {
   const sep = LANG === 'en' ? ', ' : '、';
   const visitsLine = s.visits.map(v => {
@@ -1077,11 +1169,15 @@ function buildShareSnippet(s) {
   }).join(sep);
   const name = LANG === 'en' ? `${s.nameEn} (${s.nameJa})` : `${s.nameJa}（${s.nameEn}）`;
   const season = LANG === 'en' ? seasonLabel(s.season) : s.season;
-  return t('shareSnippetTemplate', { name, season, visits: visitsLine });
+  const url = buildSpiritUrl(s.nameJa);
+  return t('shareSnippetTemplate', { name, season, visits: visitsLine, url });
 }
 
 // 📤 Web Share API（主にモバイル）が使える環境ではそちらを、使えない環境
 // （多くのデスクトップブラウザ）ではクリップボードへのコピーにフォールバックする。
+// テキスト側に既にURLを埋め込んでいるため、navigator.share()にはurlを別途
+// 渡さない（一部の共有先でtextとurlが両方表示され、リンクが二重に載ってしまう
+// のを避けるため）。
 async function shareSpirit(nameJa) {
   const s = REVISIT_DATA.find(x => x.nameJa === nameJa);
   if (!s) return;
@@ -1394,7 +1490,7 @@ function renderList() {
       : '';
     const ongoingBadge = hasOngoingVisit(s) ? `<span class="spirit-badge ongoing">${escapeHtml(t('ongoingBadge'))}</span>` : '';
     return `
-      <div class="spirit-card">
+      <div class="spirit-card" data-spirit-name="${escapeHtml(s.nameJa)}">
         <div class="spirit-icon">
           <img src="${s.imageUrl}" alt="${escapeHtml(s.nameJa)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.classList.add('no-image')">
           <span class="spirit-icon-fallback">🕊️</span>
@@ -1728,6 +1824,11 @@ document.addEventListener('keydown', function (e) {
   if (e.key === 'd' || e.key === 'D') { e.preventDefault(); toggleTheme(); return; }
 });
 
+// ⚠️ #spirit=<精霊名>は、applyFilterHash()内のrenderList()末尾でupdateFilterHash()が
+// ハッシュを（season/area/searchだけを基に）丸ごと書き直してしまう前に読んでおく必要がある
+// （parseFilterHash()直上のコメント参照）。そのためapplyFilterHash()を呼ぶ前に
+// スナップショットとして確保しておく。
+const initialSpiritHashTarget = parseSpiritHash();
 applyI18n();
 applyThemeToDOM();
 populateSeasonFilter();
@@ -1737,7 +1838,15 @@ applyFilterHash(); // #season=/#area=/#search= を読み取り、内部でrender
 renderNeverRevisited();
 renderSeasonOverview();
 renderUpcomingRevisits();
-window.addEventListener('hashchange', applyFilterHash);
+if (initialSpiritHashTarget) applySpiritHash(initialSpiritHashTarget);
+
+// hashchange時も同様に、applyFilterHash()がハッシュを書き直す前に#spirit=を先読みする。
+function handleHashChange() {
+  const spiritTarget = parseSpiritHash();
+  applyFilterHash();
+  if (spiritTarget) applySpiritHash(spiritTarget);
+}
+window.addEventListener('hashchange', handleHashChange);
 </script>
 
 </body>
