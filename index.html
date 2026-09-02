@@ -384,12 +384,12 @@
 <div class="settings-modal-overlay" id="settingsModalOverlay" onclick="if (event.target === this) settingsClose();">
   <div class="settings-modal-card" id="settingsModalCard" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle" tabindex="-1">
     <div class="settings-modal-head">
-      <h3 id="settingsModalTitle" data-i18n="settingsTitle">⚙️ 表示設定</h3>
+      <h3 id="settingsModalTitle" data-i18n="settingsTitle">表示設定</h3>
       <button class="settings-modal-close-btn" onclick="settingsClose()">✕</button>
     </div>
 
     <div class="settings-section">
-      <p class="settings-section-label" data-i18n="settingsDisplayLabel">🌙 表示</p>
+      <p class="settings-section-label" data-i18n="settingsDisplayLabel">表示</p>
       <div class="settings-row">
         <span class="settings-row-text" data-i18n="settingsDarkModeLabel">ダークモード</span>
         <button type="button" class="settings-theme-btn" id="settingsThemeBtn" onclick="toggleTheme()"></button>
@@ -397,7 +397,7 @@
     </div>
 
     <div class="settings-section">
-      <p class="settings-section-label" data-i18n="settingsShortcutsLabel">⌨️ キーボードショートカット</p>
+      <p class="settings-section-label" data-i18n="settingsShortcutsLabel">キーボードショートカット</p>
       <div class="settings-row">
         <span class="settings-row-text" data-i18n="settingsShortcutsEnableLabel">ショートカットを有効にする</span>
         <input type="checkbox" id="settingsShortcutsToggle" onchange="settingsSaveShortcutsPref()">
@@ -417,7 +417,7 @@
     </div>
 
     <div class="settings-section">
-      <p class="settings-section-label" data-i18n="settingsLangLabel">🌐 言語 / Language</p>
+      <p class="settings-section-label" data-i18n="settingsLangLabel">言語 / Language</p>
       <div class="settings-row settings-lang-row">
         <button type="button" class="settings-lang-btn" id="settingsLangJaBtn" onclick="setLang('ja')">日本語</button>
         <button type="button" class="settings-lang-btn" id="settingsLangEnBtn" onclick="setLang('en')">English</button>
@@ -431,20 +431,20 @@
 <div class="app-layout">
   <aside class="sidebar" id="sidebar" aria-labelledby="sidebarTitle" tabindex="-1">
     <div class="sidebar-head">
-      <div class="sidebar-section-label" id="sidebarTitle" data-i18n="relatedTools">🔗 関連ツール</div>
+      <div class="sidebar-section-label" id="sidebarTitle" data-i18n="relatedTools">関連ツール</div>
       <button class="sidebar-close-btn" onclick="toggleSidebar()">✕</button>
     </div>
-    <a href="https://taipak5000.github.io/tai-item/" class="sidebar-nav-link" data-i18n="toolItem">🗂️ アイテム所持管理</a>
-    <a href="https://taipak5000.github.io/tai-emote/" class="sidebar-nav-link" data-i18n="toolEmote">🎭 エモート所持率管理</a>
-    <a href="https://taipak5000.github.io/share/" class="sidebar-nav-link" data-i18n="toolShare">📍 創作物管理ツール</a>
-    <a href="https://taipak5000.github.io/tai-nomacan/" class="sidebar-nav-link" data-i18n="toolNomacan">🕯️ ノマキャン計算機</a>
-    <a href="https://taipak5000.github.io/star-candle/" class="sidebar-nav-link" data-i18n="toolStarCandle">🕯️ 星のキャンドル計算機</a>
-    <a href="https://taipak5000.github.io/companion/" class="sidebar-nav-link" data-i18n="toolCompanion">✨ 精霊同行ツール</a>
-    <a href="https://taipak5000.github.io/wings/" class="sidebar-nav-link" data-i18n="toolWings">🪽 羽トラッカー</a>
-    <a href="https://taipak5000.github.io/tai-score/" class="sidebar-nav-link"><span class="tool-badge-test">test</span><span data-i18n="toolScore">🎵 楽譜づくり</span></a>
-    <a href="https://taipak5000.github.io/tai-transfer/" class="sidebar-nav-link" data-i18n="toolTransfer">🔄 データ引継ぎ</a>
-    <a href="https://taipak5000.github.io/tai-info/" class="sidebar-nav-link" data-i18n="toolInfo">⚙️ 設定・更新情報</a>
-    <span class="sidebar-nav-link current-tool" data-i18n="toolRevisitSelf">🕊️ 再訪精霊データベース（現在地）</span>
+    <a href="https://taipak5000.github.io/tai-item/" class="sidebar-nav-link" data-i18n="toolItem">アイテム所持管理</a>
+    <a href="https://taipak5000.github.io/tai-emote/" class="sidebar-nav-link" data-i18n="toolEmote">エモート所持率管理</a>
+    <a href="https://taipak5000.github.io/share/" class="sidebar-nav-link" data-i18n="toolShare">創作物管理ツール</a>
+    <a href="https://taipak5000.github.io/tai-nomacan/" class="sidebar-nav-link" data-i18n="toolNomacan">ノマキャン計算機</a>
+    <a href="https://taipak5000.github.io/star-candle/" class="sidebar-nav-link" data-i18n="toolStarCandle">星のキャンドル計算機</a>
+    <a href="https://taipak5000.github.io/companion/" class="sidebar-nav-link" data-i18n="toolCompanion">精霊同行ツール</a>
+    <a href="https://taipak5000.github.io/wings/" class="sidebar-nav-link" data-i18n="toolWings">羽トラッカー</a>
+    <a href="https://taipak5000.github.io/tai-score/" class="sidebar-nav-link"><span class="tool-badge-test">test</span><span data-i18n="toolScore">楽譜づくり</span></a>
+    <a href="https://taipak5000.github.io/tai-transfer/" class="sidebar-nav-link" data-i18n="toolTransfer">データ引継ぎ</a>
+    <a href="https://taipak5000.github.io/tai-info/" class="sidebar-nav-link" data-i18n="toolInfo">設定・更新情報</a>
+    <span class="sidebar-nav-link current-tool" data-i18n="toolRevisitSelf">再訪精霊データベース（現在地）</span>
   </aside>
 
   <div>
@@ -456,14 +456,14 @@
 
     <!-- 📅 進行中/次回の特別来訪を.ics形式でカレンダーに追加できる一覧。
          フィルターの影響を受けない固定表示のため、専用の<div>にJSで直接描画する。 -->
-    <p class="sec-label" data-i18n="upcomingSectionLabel">📅 進行中・次回の特別来訪</p>
+    <p class="sec-label" data-i18n="upcomingSectionLabel">進行中・次回の特別来訪</p>
     <div class="sec-sub" data-i18n="upcomingSectionSub">現在進行中、またはこれから始まる特別来訪（Returning Spirits）の一覧です。「カレンダーに追加」から.ics形式で予定を追加できます。</div>
     <div class="spirit-list" id="upcomingRevisitsList"><!-- JS --></div>
 
     <!-- 📊 シーズン横断の来訪達成度概観。行数が多いため既定は折り畳んでおく。 -->
     <details class="collapse-section" id="seasonOverviewSection">
       <summary class="collapse-summary">
-        <span data-i18n="seasonOverviewSummary">📊 シーズン別 再訪達成度</span>
+        <span data-i18n="seasonOverviewSummary">シーズン別 再訪達成度</span>
       </summary>
       <div class="collapse-note" data-i18n="seasonOverviewNote">季節ごとに、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度でも来た精霊の割合をまとめています。行をタップするとその季節で絞り込みます。</div>
       <div class="season-overview-overall" id="seasonOverviewOverall"></div>
@@ -472,7 +472,7 @@
 
     <div class="filter-card">
       <div class="filter-row">
-        <input type="search" class="filter-search" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="🔍 精霊名で検索…" oninput="renderList()">
+        <input type="search" class="filter-search" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="精霊名で検索…" oninput="renderList()">
         <select class="filter-select" id="seasonFilter" onchange="renderList()">
           <option value="all" data-i18n="seasonAll">すべての季節</option>
         </select>
@@ -490,7 +490,7 @@
       <div class="quick-filter-row">
         <button type="button" class="quick-filter-chip" id="svOnlyChip" onclick="toggleSvOnlyFilter()"
           aria-pressed="false" data-i18n="svOnlyChipLabel" data-i18n-title="svOnlyChipTitle"
-          title="来訪履歴に特別来訪（Returning Spirits）が1回以上含まれる精霊のみ表示します">🔁 特別来訪ありのみ</button>
+          title="来訪履歴に特別来訪（Returning Spirits）が1回以上含まれる精霊のみ表示します">特別来訪ありのみ</button>
       </div>
       <div class="filter-legend" role="group" data-i18n-aria-label="visitTypeLegendLabel" aria-label="来訪種別の凡例">
         <span class="visit-chip" data-i18n="typeVisit">来訪</span>
@@ -500,7 +500,7 @@
       <div class="filter-stats-row">
         <div class="filter-stats" id="filterStats"></div>
         <button type="button" class="filter-clear-btn" id="clearAllFiltersBtn" style="display:none;"
-          onclick="clearAllFilters()" data-i18n="clearAllFiltersBtn">✕ フィルターを全てクリア</button>
+          onclick="clearAllFilters()" data-i18n="clearAllFiltersBtn">フィルターを全てクリア</button>
       </div>
       <div class="season-summary" id="seasonSummary"></div>
     </div>
@@ -509,11 +509,11 @@
 
     <details class="collapse-section" id="neverRevisitedSection">
       <summary class="collapse-summary">
-        <span data-i18n="collapseSummary">🕰️ まだ一度も再訪が来ていない精霊</span><span class="collapse-count" id="neverRevisitedCount"></span>
+        <span data-i18n="collapseSummary">まだ一度も再訪が来ていない精霊</span><span class="collapse-count" id="neverRevisitedCount"></span>
       </summary>
       <div class="collapse-note" data-i18n="collapseNote">季節精霊のうち、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度も来ていない精霊の一覧です。</div>
       <div class="filter-row">
-        <input type="search" class="filter-search" id="neverRevisitedSearchInput" data-i18n-placeholder="searchPlaceholder" placeholder="🔍 精霊名で検索…" oninput="renderNeverRevisited()">
+        <input type="search" class="filter-search" id="neverRevisitedSearchInput" data-i18n-placeholder="searchPlaceholder" placeholder="精霊名で検索…" oninput="renderNeverRevisited()">
         <select class="filter-select" id="neverRevisitedSeasonFilter" onchange="renderNeverRevisited()">
           <option value="all" data-i18n="seasonAll">すべての季節</option>
         </select>
@@ -531,7 +531,7 @@
   <span data-i18n="footerCreditLabel">作成・ご意見: </span><a href="https://x.com/Skyzztai" target="_blank" rel="noopener noreferrer">@Skyzztai</a>　／
   <a href="https://odaibako.net/u/Skyzztai" target="_blank" rel="noopener noreferrer" data-i18n="footerRequestForm">リクエストフォーム</a><br>
   <span style="font-size:12px; margin-top:4px; display:inline-block;">
-    <a href="https://taipak5000.github.io/tai-info/" target="_blank" rel="noopener noreferrer" data-i18n="footerInfoLink">⚙️ 設定・更新情報・クレジット・プライバシーポリシー</a>
+    <a href="https://taipak5000.github.io/tai-info/" target="_blank" rel="noopener noreferrer" data-i18n="footerInfoLink">設定・更新情報・クレジット・プライバシーポリシー</a>
   </span>
 </footer>
 
@@ -665,30 +665,30 @@ function seasonLabel(season) { return SEASON_EN[season] || season; }
 const I18N = {
   ja: {
     navTitle: '🕊️ 再訪精霊データベース',
-    sidebarToggle: '☰ ツール',
-    relatedTools: '🔗 関連ツール',
-    toolItem: '🗂️ アイテム所持管理',
-    toolEmote: '🎭 エモート所持率管理',
-    toolShare: '📍 創作物管理ツール',
-    toolNomacan: '🕯️ ノマキャン計算機',
-    toolStarCandle: '🕯️ 星のキャンドル計算機',
-    toolCompanion: '✨ 精霊同行ツール',
-    toolWings: '🪽 羽トラッカー',
-    toolScore: '🎵 楽譜づくり',
-    toolTransfer: '🔄 データ引継ぎ',
-    toolInfo: '⚙️ 設定・更新情報',
-    toolRevisitSelf: '🕊️ 再訪精霊データベース',
+    sidebarToggle: 'ツール',
+    relatedTools: '関連ツール',
+    toolItem: 'アイテム所持管理',
+    toolEmote: 'エモート所持率管理',
+    toolShare: '創作物管理ツール',
+    toolNomacan: 'ノマキャン計算機',
+    toolStarCandle: '星のキャンドル計算機',
+    toolCompanion: '精霊同行ツール',
+    toolWings: '羽トラッカー',
+    toolScore: '楽譜づくり',
+    toolTransfer: 'データ引継ぎ',
+    toolInfo: '設定・更新情報',
+    toolRevisitSelf: '再訪精霊データベース',
     introPart1: '過去に来訪（Traveling Spirit）・特別来訪（Returning Spirits）した精霊の履歴を検索できる、閲覧専用の参考データベースです。所持チェックなどの記録機能はありません。データは',
     introPart2: 'プロジェクトを基にしています。',
-    searchPlaceholder: '🔍 精霊名で検索…',
+    searchPlaceholder: '精霊名で検索…',
     seasonAll: 'すべての季節',
     sortLatest: '最新の来訪順',
     sortDaysSince: '最終来訪からの日数が長い順',
     sortName: '精霊名順',
     sortCount: '来訪回数が多い順',
     sortOngoing: '進行中の再訪を優先',
-    clearAllFiltersBtn: '✕ フィルターを全てクリア',
-    collapseSummary: '🕰️ まだ一度も再訪が来ていない精霊',
+    clearAllFiltersBtn: 'フィルターを全てクリア',
+    collapseSummary: 'まだ一度も再訪が来ていない精霊',
     collapseNote: '季節精霊のうち、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度も来ていない精霊の一覧です。',
     footerDisclaimer: 'このサイトはSky 星を紡ぐ子どもたちの非公式ファンサイトです。thatgamecompanyは一切関与していません。',
     footerDataLabel: '再訪履歴データ: ',
@@ -696,7 +696,7 @@ const I18N = {
     footerIconLabel: '精霊アイコン: ',
     footerCreditLabel: '作成・ご意見: ',
     footerRequestForm: 'リクエストフォーム',
-    footerInfoLink: '⚙️ 設定・更新情報・クレジット・プライバシーポリシー',
+    footerInfoLink: '設定・更新情報・クレジット・プライバシーポリシー',
     filterStats: '{shown} / {total} 精霊',
     emptyState: '該当する精霊が見つかりませんでした',
     visitCountLine: '来訪 {count} 回　・　最終来訪から {days} 日',
@@ -708,19 +708,19 @@ const I18N = {
     typeError: 'エラー表示',
     visitTypeLegendLabel: '来訪種別の凡例',
     pageTitle: '再訪精霊データベース - Sky所持率管理',
-    settingsTitle: '⚙️ 表示設定',
-    settingsDisplayLabel: '🌙 表示',
+    settingsTitle: '表示設定',
+    settingsDisplayLabel: '表示',
     settingsDarkModeLabel: 'テーマ',
-    settingsShortcutsLabel: '⌨️ キーボードショートカット',
+    settingsShortcutsLabel: 'キーボードショートカット',
     settingsShortcutsEnableLabel: 'ショートカットを有効にする',
     settingsShortcutOpen: 'この設定を開く',
     settingsShortcutTheme: 'テーマを切替（ライト→ダーク→システム）',
     settingsShortcutEscape: '開いているウィンドウを閉じる',
-    settingsLangLabel: '🌐 言語 / Language',
+    settingsLangLabel: '言語 / Language',
     settingsCloseBtn: '閉じる',
-    themeDark: '🌙 ダーク',
-    themeLight: '☀️ ライト',
-    themeSystem: '🖥️ システム',
+    themeDark: 'ダーク',
+    themeLight: 'ライト',
+    themeSystem: 'システム',
     themeBtnAriaLabel: '現在のテーマ: {current}。クリックで{next}に切り替え',
     dockSearch: '検索',
     dockUnvisited: '未再訪',
@@ -729,56 +729,56 @@ const I18N = {
     dockAriaLabel: 'クイックメニュー',
     ongoingBadge: '🟢 進行中の再訪',
     visitOngoingTitle: '{type}（進行中）',
-    svOnlyChipLabel: '🔁 特別来訪ありのみ',
+    svOnlyChipLabel: '特別来訪ありのみ',
     svOnlyChipTitle: '来訪履歴に特別来訪（Returning Spirits）が1回以上含まれる精霊のみ表示します',
     seasonSummaryLine: '{season}　・　精霊 {count} 体　・　来訪合計 {visits} 回　・　最も滞っているのは「{mostOverdue}」（{days}日）',
     seasonSummaryNeverLine: '　・　未再訪 {n} 体',
     areaAll: 'すべてのエリア',
-    shareBtnLabel: '📤 共有',
+    shareBtnLabel: '共有',
     shareBtnTitle: '来訪履歴をワンタップで共有します',
-    shareSnippetTemplate: '🕊️ {name}\n季節: {season}\n来訪履歴: {visits}\n{url}',
+    shareSnippetTemplate: '{name}\n季節: {season}\n来訪履歴: {visits}\n{url}',
     shareCopiedToast: '来訪履歴とリンクをコピーしました',
     shareFailedToast: 'コピーに失敗しました',
-    seasonOverviewSummary: '📊 シーズン別 再訪達成度',
+    seasonOverviewSummary: 'シーズン別 再訪達成度',
     seasonOverviewNote: '季節ごとに、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度でも来た精霊の割合をまとめています。行をタップするとその季節で絞り込みます。',
     seasonOverviewOverallLine: '全季節合計: {revisited} / {total} 精霊が再訪済み（{pct}%）',
     seasonOverviewSubLine: '{revisited} / {total} 精霊　・　来訪合計 {visits} 回',
-    upcomingSectionLabel: '📅 進行中・次回の特別来訪',
+    upcomingSectionLabel: '進行中・次回の特別来訪',
     upcomingSectionSub: '現在進行中、またはこれから始まる特別来訪（Returning Spirits）の一覧です。「カレンダーに追加」から.ics形式で予定を追加できます。',
     upcomingEmptyState: '現在、進行中・予定されている特別来訪はありません。',
     calendarOngoingBadge: '🟢 進行中',
     calendarNextBadge: '🔜 次回予定',
-    calendarAddBtn: '📅 カレンダーに追加',
+    calendarAddBtn: 'カレンダーに追加',
     calendarAddBtnTitle: '.icsファイルをダウンロードしてカレンダーに追加します',
     toastIcsDownloaded: '.icsファイルをダウンロードしました',
     toastIcsFailed: 'カレンダーファイルの作成に失敗しました'
   },
   en: {
     navTitle: '🕊️ Revisit Spirit Database',
-    sidebarToggle: '☰ Tools',
-    relatedTools: '🔗 Related Tools',
-    toolItem: '🗂️ Item Collection',
-    toolEmote: '🎭 Emote Collection',
-    toolShare: '📍 Creation Manager',
-    toolNomacan: '🕯️ Nomacan Calculator',
-    toolStarCandle: '🕯️ Star Candle Calculator',
-    toolCompanion: '✨ Spirit Companion Tool',
-    toolWings: '🪽 Wing Tracker',
-    toolScore: '🎵 Sheet Music Maker',
-    toolTransfer: '🔄 Data Transfer',
-    toolInfo: '⚙️ Settings & Updates',
-    toolRevisitSelf: '🕊️ Revisit Spirit Database',
+    sidebarToggle: 'Tools',
+    relatedTools: 'Related Tools',
+    toolItem: 'Item Collection',
+    toolEmote: 'Emote Collection',
+    toolShare: 'Creation Manager',
+    toolNomacan: 'Nomacan Calculator',
+    toolStarCandle: 'Star Candle Calculator',
+    toolCompanion: 'Spirit Companion Tool',
+    toolWings: 'Wing Tracker',
+    toolScore: 'Sheet Music Maker',
+    toolTransfer: 'Data Transfer',
+    toolInfo: 'Settings & Updates',
+    toolRevisitSelf: 'Revisit Spirit Database',
     introPart1: 'A read-only reference database for looking up the visit history of Traveling Spirits and Returning Spirits. There is no ownership-tracking feature here. Data is based on the',
     introPart2: ' project.',
-    searchPlaceholder: '🔍 Search by spirit name…',
+    searchPlaceholder: 'Search by spirit name…',
     seasonAll: 'All Seasons',
     sortLatest: 'Most Recent Visit',
     sortDaysSince: 'Longest Since Last Visit',
     sortName: 'Spirit Name',
     sortCount: 'Most Visits',
     sortOngoing: 'Ongoing Revisits First',
-    clearAllFiltersBtn: '✕ Clear all filters',
-    collapseSummary: '🕰️ Never-Revisited Spirits',
+    clearAllFiltersBtn: 'Clear all filters',
+    collapseSummary: 'Never-Revisited Spirits',
     collapseNote: 'Seasonal spirits that have never had a Traveling Spirit or Returning Spirits visit.',
     footerDisclaimer: 'This is an unofficial fan site for Sky: Children of the Light. thatgamecompany is not involved in any way.',
     footerDataLabel: 'Revisit history data: ',
@@ -786,7 +786,7 @@ const I18N = {
     footerIconLabel: 'Spirit icons: ',
     footerCreditLabel: 'Created by / feedback: ',
     footerRequestForm: 'Request form',
-    footerInfoLink: "⚙️ Settings / What's New / Credits / Privacy Policy",
+    footerInfoLink: "Settings / What's New / Credits / Privacy Policy",
     filterStats: '{shown} / {total} spirits',
     emptyState: 'No matching spirits found',
     visitCountLine: 'Visited {count}× · {days}d since last visit',
@@ -798,19 +798,19 @@ const I18N = {
     typeError: 'Display Error',
     visitTypeLegendLabel: 'Visit type legend',
     pageTitle: 'Revisit Spirit Database - Sky Collection Tracker',
-    settingsTitle: '⚙️ Display Settings',
-    settingsDisplayLabel: '🌙 Display',
+    settingsTitle: 'Display Settings',
+    settingsDisplayLabel: 'Display',
     settingsDarkModeLabel: 'Theme',
-    settingsShortcutsLabel: '⌨️ Keyboard Shortcuts',
+    settingsShortcutsLabel: 'Keyboard Shortcuts',
     settingsShortcutsEnableLabel: 'Enable keyboard shortcuts',
     settingsShortcutOpen: 'Open this settings panel',
     settingsShortcutTheme: 'Cycle theme (Light → Dark → System)',
     settingsShortcutEscape: 'Close the open window',
-    settingsLangLabel: '🌐 Language',
+    settingsLangLabel: 'Language',
     settingsCloseBtn: 'Close',
-    themeDark: '🌙 Dark',
-    themeLight: '☀️ Light',
-    themeSystem: '🖥️ System',
+    themeDark: 'Dark',
+    themeLight: 'Light',
+    themeSystem: 'System',
     themeBtnAriaLabel: 'Current theme: {current}. Click to switch to {next}',
     dockSearch: 'Search',
     dockUnvisited: 'Unvisited',
@@ -819,26 +819,26 @@ const I18N = {
     dockAriaLabel: 'Quick Menu',
     ongoingBadge: '🟢 Ongoing Revisit',
     visitOngoingTitle: '{type} (ongoing)',
-    svOnlyChipLabel: '🔁 Returning Spirits Only',
+    svOnlyChipLabel: 'Returning Spirits Only',
     svOnlyChipTitle: 'Show only spirits whose visit history includes at least one Returning Spirits event',
     seasonSummaryLine: '{season} · {count} spirits · {visits} total visits · most overdue: {mostOverdue} ({days}d)',
     seasonSummaryNeverLine: ' · {n} never revisited',
     areaAll: 'All Areas',
-    shareBtnLabel: '📤 Share',
+    shareBtnLabel: 'Share',
     shareBtnTitle: 'Share this visit history with one tap',
-    shareSnippetTemplate: '🕊️ {name}\nSeason: {season}\nVisit history: {visits}\n{url}',
+    shareSnippetTemplate: '{name}\nSeason: {season}\nVisit history: {visits}\n{url}',
     shareCopiedToast: 'Copied visit history and link to clipboard',
     shareFailedToast: 'Failed to copy',
-    seasonOverviewSummary: '📊 Season Achievement Overview',
+    seasonOverviewSummary: 'Season Achievement Overview',
     seasonOverviewNote: 'Shows, for each season, the share of spirits that have had at least one Traveling Spirit or Returning Spirits visit. Tap a row to filter the list by that season.',
     seasonOverviewOverallLine: 'All seasons: {revisited} / {total} spirits revisited ({pct}%)',
     seasonOverviewSubLine: '{revisited} / {total} spirits · {visits} total visits',
-    upcomingSectionLabel: '📅 Ongoing & Next Returning Spirits',
+    upcomingSectionLabel: 'Ongoing & Next Returning Spirits',
     upcomingSectionSub: 'Returning Spirits currently active or scheduled to start soon. Use "Add to Calendar" to save the dates as an .ics file.',
     upcomingEmptyState: 'No ongoing or upcoming Returning Spirits right now.',
     calendarOngoingBadge: '🟢 Ongoing',
     calendarNextBadge: '🔜 Coming Up',
-    calendarAddBtn: '📅 Add to Calendar',
+    calendarAddBtn: 'Add to Calendar',
     calendarAddBtnTitle: 'Download an .ics file to add this to your calendar',
     toastIcsDownloaded: 'Downloaded the .ics file',
     toastIcsFailed: 'Failed to create the calendar file'
