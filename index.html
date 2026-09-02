@@ -559,7 +559,8 @@
    UI言語設定（'ja'|'en'、既定 'ja'）。sky_app_lang は taipak5000.github.io
    系ツール共通のグローバルキー（プロフィール単位ではなく端末単位の設定）。
    ================================================================ */
-let LANG = localStorage.getItem('sky_app_lang') || 'ja';
+let LANG = localStorage.getItem('sky_app_lang');
+if (LANG !== 'ja' && LANG !== 'en') LANG = 'ja';
 
 /* ================================================================
    再訪精霊データ（92精霊・230件の来訪履歴、2020-01〜2026-08）
@@ -1246,6 +1247,7 @@ function getUpcomingRevisits() {
   const items = [];
   REVISIT_DATA.forEach(s => {
     s.visits.forEach(v => {
+      if (v.type !== 'SV') return;
       if (!v.endDate) return;
       if (v.endDate < todayStr) return;
       items.push({ spirit: s, visit: v, ongoing: v.date <= todayStr });
