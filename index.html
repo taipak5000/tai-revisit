@@ -95,14 +95,11 @@
     [data-theme="dark"] nav { background: rgba(0,0,0,0.80); }
     .nav-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
     .nav-right { display: flex; align-items: center; gap: 8px; }
-    .sidebar-toggle-btn, .lang-toggle-btn, .settings-toggle-btn {
+    .lang-toggle-btn {
       background: var(--card); border: 1px solid var(--sep); border-radius: var(--r-sm);
       padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--text);
       display: flex; align-items: center; gap: 6px; white-space: nowrap;
     }
-    .settings-toggle-btn { font-size: 15px; padding: 6px 10px; line-height: 1; }
-    /* lang-toggle-btn / settings-toggle-btn intentionally excluded: unlike the hamburger, they stay visible at desktop width too */
-    @media (min-width: 850px) { .sidebar-toggle-btn { visibility: hidden; } }
 
     .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 499; }
     .sidebar-overlay.show { display: block; }
@@ -563,7 +560,7 @@ let LANG = localStorage.getItem('sky_app_lang');
 if (LANG !== 'ja' && LANG !== 'en') LANG = 'ja';
 
 /* ================================================================
-   再訪精霊データ（92精霊・230件の来訪履歴、2020-01〜2026-08）
+   再訪精霊データ（92精霊・231件の来訪履歴、2020-01〜2026-08）
    出典: SkyGame-Data (https://github.com/Silverfeelin/SkyGame-Data)
    来訪日は最新→最古の順、各精霊内は古い→新しい順。
    type: 'TS'=通常の来訪(Traveling Spirit) / 'SV'=特別来訪(複数精霊同時、Returning Spirits)
@@ -666,7 +663,6 @@ function seasonLabel(season) { return SEASON_EN[season] || season; }
 const I18N = {
   ja: {
     navTitle: '🕊️ 再訪精霊データベース',
-    sidebarToggle: 'ツール',
     relatedTools: '関連ツール',
     toolItem: 'アイテム所持管理',
     toolEmote: 'エモート所持率管理',
@@ -756,7 +752,6 @@ const I18N = {
   },
   en: {
     navTitle: '🕊️ Revisit Spirit Database',
-    sidebarToggle: 'Tools',
     relatedTools: 'Related Tools',
     toolItem: 'Item Collection',
     toolEmote: 'Emote Collection',
@@ -1660,10 +1655,6 @@ function resolveEffectiveTheme(mode) {
   return (mode === 'light' || mode === 'dark')
     ? mode
     : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-}
-
-function isDarkMode() {
-  return document.documentElement.getAttribute('data-theme') === 'dark';
 }
 
 // 現在のsky_app_theme保存値から実効テーマを解決してdata-theme属性に反映する。
