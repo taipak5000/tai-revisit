@@ -163,17 +163,6 @@
     }
     .filter-clear-btn:hover { border-color: var(--cyan); color: var(--cyan-d); }
 
-    /* 🔁 クイックフィルターチップ行（季節ドロップダウンとは別枠のワンタップ絞り込み）。
-       トグル前は.filter-clear-btnと似た地味な配色、有効時は.spirit-badge等と同じ
-       シアン系トークンに切り替える（テーマ別上書きにも自動追従）。 */
-    .quick-filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    .quick-filter-chip {
-      font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 999px;
-      background: var(--bg); color: var(--text-2); border: 1.5px solid var(--sep); white-space: nowrap;
-    }
-    .quick-filter-chip:hover { border-color: var(--cyan); color: var(--cyan-d); }
-    .quick-filter-chip.active { background: var(--cyan-bg); border-color: var(--cyan); color: var(--cyan-d); font-weight: 700; }
-
     /* 📊 季節フィルター選択中のみ表示するサマリー統計（該当季節の精霊数・来訪合計・
        最も滞っている精霊など）。表示/非表示は.sidebar-overlay.show等と同じ
        classList('show')方式（[hidden]属性は使わない）。 */
@@ -496,11 +485,6 @@
           <option value="count" data-i18n="sortCount">来訪回数が多い順</option>
         </select>
       </div>
-      <div class="quick-filter-row">
-        <button type="button" class="quick-filter-chip" id="svOnlyChip" onclick="toggleSvOnlyFilter()"
-          aria-pressed="false" data-i18n="svOnlyChipLabel" data-i18n-title="svOnlyChipTitle"
-          title="来訪履歴に特別来訪（Returning Spirits）が1回以上含まれる精霊のみ表示します">特別来訪ありのみ</button>
-      </div>
       <div class="filter-legend" role="group" data-i18n-aria-label="visitTypeLegendLabel" aria-label="来訪種別の凡例">
         <span class="visit-chip" data-i18n="typeVisit">来訪</span>
         <span class="visit-chip sv" data-i18n="typeReturning">特別来訪</span>
@@ -738,8 +722,6 @@ const I18N = {
     dockAriaLabel: 'クイックメニュー',
     ongoingBadge: '🟢 進行中の再訪',
     visitOngoingTitle: '{type}（進行中）',
-    svOnlyChipLabel: '特別来訪ありのみ',
-    svOnlyChipTitle: '来訪履歴に特別来訪（Returning Spirits）が1回以上含まれる精霊のみ表示します',
     seasonSummaryLine: '{season}　・　精霊 {count} 体　・　来訪合計 {visits} 回　・　最も滞っているのは「{mostOverdue}」（{days}日）',
     seasonSummaryNeverLine: '　・　未再訪 {n} 体',
     areaAll: 'すべてのエリア',
@@ -818,8 +800,6 @@ const I18N = {
     dockAriaLabel: 'Quick Menu',
     ongoingBadge: '🟢 Ongoing Revisit',
     visitOngoingTitle: '{type} (ongoing)',
-    svOnlyChipLabel: 'Returning Spirits Only',
-    svOnlyChipTitle: 'Show only spirits whose visit history includes at least one Returning Spirits event',
     seasonSummaryLine: '{season} · {count} spirits · {visits} total visits · most overdue: {mostOverdue} ({days}d)',
     seasonSummaryNeverLine: ' · {n} never revisited',
     areaAll: 'All Areas',
@@ -1102,24 +1082,6 @@ function populateAreaFilter() {
   if (prevValue && areas.includes(prevValue)) select.value = prevValue;
 }
 
-// 🔁 「特別来訪ありのみ」クイックフィルターチップの状態（季節ドロップダウンとは別枠、
-// 検索/季節/並び順のような<select>やテキスト入力ではなくトグルボタンなのでここで単独管理する）。
-let svOnlyFilterActive = false;
-function toggleSvOnlyFilter() {
-  svOnlyFilterActive = !svOnlyFilterActive;
-  const btn = document.getElementById('svOnlyChip');
-  if (btn) {
-    btn.classList.toggle('active', svOnlyFilterActive);
-    btn.setAttribute('aria-pressed', svOnlyFilterActive ? 'true' : 'false');
-  }
-  renderList();
-}
-
-// 🔁 来訪履歴の中に特別来訪（SV、複数精霊同時来訪のReturning Spirits）が
-// 1回以上あるか（「特別来訪ありのみ」チップ用。ongoingFirst/isOngoingVisitとは
-// 別の軸で、こちらは「現在進行中かどうか」に関わらず過去分も含めた履歴全体を見る）。
-function hasSvVisit(s) { return s.visits.some(v => v.type === 'SV'); }
-
 // 🟢 endDateを持つ来訪（主にSV）が、今日時点でまだ「進行中」かどうか。
 // YYYY-MM-DD文字列は辞書式比較がそのまま日付の前後判定になるため、
 // daysSince()と同じ「ローカル日付ベース」の考え方でDate化せず直接比較する。
@@ -1132,16 +1094,13 @@ function isOngoingVisit(v) {
 }
 function hasOngoingVisit(s) { return s.visits.some(isOngoingVisit); }
 
-// 🧹 検索語＋季節フィルター＋並び順＋「特別来訪ありのみ」チップをまとめて既定値
-// （未入力／すべての季節／最新の来訪順／チップOFF）に戻す
+// 🧹 検索語＋季節フィルター＋並び順をまとめて既定値
+// （未入力／すべての季節／最新の来訪順）に戻す
 function clearAllFilters() {
   document.getElementById('searchInput').value = '';
   document.getElementById('seasonFilter').value = 'all';
   document.getElementById('areaFilter').value = 'all';
   document.getElementById('sortMode').value = 'latest';
-  svOnlyFilterActive = false;
-  const svChip = document.getElementById('svOnlyChip');
-  if (svChip) { svChip.classList.remove('active'); svChip.setAttribute('aria-pressed', 'false'); }
   renderList();
 }
 
@@ -1281,7 +1240,7 @@ function renderSeasonOverview() {
 }
 
 // 📊 達成度概観の行をタップした際、その季節でメインリストを絞り込みつつ
-// フィルターカードまでスクロールする（quick-filter-chipと同じ「タップで絞り込む」導線）。
+// フィルターカードまでスクロールする。
 function jumpToSeasonFilter(season) {
   const select = document.getElementById('seasonFilter');
   if (!select) return;
@@ -1300,14 +1259,13 @@ function renderList() {
   // フィルターが1つでも既定値から変わっているときだけ「全てクリア」ボタンを表示する
   const clearBtn = document.getElementById('clearAllFiltersBtn');
   if (clearBtn) {
-    const anyFilterActive = !!q || seasonFilter !== 'all' || areaFilter !== 'all' || sortMode !== 'latest' || svOnlyFilterActive;
+    const anyFilterActive = !!q || seasonFilter !== 'all' || areaFilter !== 'all' || sortMode !== 'latest';
     clearBtn.style.display = anyFilterActive ? '' : 'none';
   }
 
   let list = REVISIT_DATA.filter(s => {
     if (seasonFilter !== 'all' && s.season !== seasonFilter) return false;
     if (areaFilter !== 'all' && s.area !== areaFilter) return false;
-    if (svOnlyFilterActive && !hasSvVisit(s)) return false;
     if (!q) return true;
     const yomi = SPIRIT_YOMI[s.nameJa] ? normalizeSearchText(SPIRIT_YOMI[s.nameJa]) : '';
     return normalizeSearchText(s.nameJa).includes(q) || normalizeSearchText(s.nameEn).includes(q) || yomi.includes(q);
