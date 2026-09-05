@@ -214,15 +214,6 @@
        （.spirit-badgeと同じシアン系トークンを流用し、テーマ別の上書きにも自動追従する） */
     .spirit-rank-badge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--cyan-bg); color: var(--cyan-d); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-    /* 📤 精霊ごとの来訪履歴ワンタップ共有ボタン（.filter-clear-btnと同じ地味なピル配色を流用）。
-       spirit-cardの中で唯一クリック可能な要素なので、visit-countの下に単独行として置く。 */
-    .spirit-share-btn {
-      display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
-      font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
-      background: var(--bg); color: var(--text-2); border: 1px solid var(--sep); white-space: nowrap;
-    }
-    .spirit-share-btn:hover { border-color: var(--cyan); color: var(--cyan-d); }
-
     /* 🔗 #spirit=<精霊名> ディープリンクでジャンプしてきた際、対象カードだけを
        一時的に目立たせるワンショットのハイライト（applySpiritHash()から付与/解除する）。
        box-shadowのkeyframesにしているのは、border色の変更だと.spirit-cardに
@@ -233,16 +224,6 @@
       20%, 80% { box-shadow: 0 0 0 3px var(--cyan); }
     }
     .spirit-card-highlight { animation: spiritCardFlash 2s ease-in-out; }
-
-    /* 📅 進行中/次回の特別来訪セクションの「カレンダーに追加」ボタン。
-       .spirit-badgeと同じシアン系トークンだが、クリック可能なことが分かるよう
-       ホバー時に塗りつぶしへ切り替える（他の淡色ピルボタンとは区別する）。 */
-    .calendar-add-btn {
-      display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
-      font-size: 11.5px; font-weight: 700; padding: 5px 11px; border-radius: 999px;
-      background: var(--cyan-bg); color: var(--cyan-d); border: 1px solid transparent; white-space: nowrap;
-    }
-    .calendar-add-btn:hover { background: var(--cyan); color: #fff; }
 
     .empty-state { text-align: center; padding: 40px 16px; color: var(--text-2); font-size: 13px; }
 
@@ -333,15 +314,6 @@
     footer { text-align: center; padding: 24px 16px; color: var(--text-2); font-size: 13px; border-top: 1px solid var(--sep); margin-top: 40px; line-height: 1.6; }
     footer a { color: var(--cyan-d); text-decoration: none; }
 
-    /* 🔔 共有・カレンダー登録の結果通知トースト（taipak5000.github.io系の他ツールと
-       同じ見た目・位置・showToast()の考え方を踏襲。site-dockの高さ分だけ底上げする）。 */
-    .toast {
-      position: fixed; bottom: calc(84px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%) translateY(20px);
-      background: rgba(28,28,30,0.92); color: #fff; padding: 10px 18px; border-radius: 999px;
-      font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.2s, transform 0.2s; z-index: 2000;
-      pointer-events: none; white-space: pre-line; text-align: center;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     /* ── 🧭 site-dock: ページ下部固定のクイックアクセスバー（ハンバーガーサイドバーと併存） ──
        セレクタは `nav.site-dock`（要素+クラス）にして、汎用の `nav { position:sticky; top:0; ... }`
@@ -491,10 +463,10 @@
         <span data-i18n="introPart2">プロジェクトを基にしています。</span></p>
     </div>
 
-    <!-- 📅 進行中/次回の特別来訪を.ics形式でカレンダーに追加できる一覧。
-         フィルターの影響を受けない固定表示のため、専用の<div>にJSで直接描画する。 -->
+    <!-- 📅 進行中/次回の特別来訪の一覧。フィルターの影響を受けない固定表示のため、
+         専用の<div>にJSで直接描画する。 -->
     <p class="sec-label" data-i18n="upcomingSectionLabel">進行中・次回の特別来訪</p>
-    <div class="sec-sub" data-i18n="upcomingSectionSub">現在進行中、またはこれから始まる特別来訪（Returning Spirits）の一覧です。「カレンダーに追加」から.ics形式で予定を追加できます。</div>
+    <div class="sec-sub" data-i18n="upcomingSectionSub">現在進行中、またはこれから始まる特別来訪（Returning Spirits）の一覧です。</div>
     <div class="spirit-list" id="upcomingRevisitsList"><!-- JS --></div>
 
     <!-- 📊 シーズン横断の来訪達成度概観。行数が多いため既定は折り畳んでおく。 -->
@@ -771,24 +743,15 @@ const I18N = {
     seasonSummaryLine: '{season}　・　精霊 {count} 体　・　来訪合計 {visits} 回　・　最も滞っているのは「{mostOverdue}」（{days}日）',
     seasonSummaryNeverLine: '　・　未再訪 {n} 体',
     areaAll: 'すべてのエリア',
-    shareBtnLabel: '共有',
-    shareBtnTitle: '来訪履歴をワンタップで共有します',
-    shareSnippetTemplate: '{name}\n季節: {season}\n来訪履歴: {visits}\n{url}',
-    shareCopiedToast: '来訪履歴とリンクをコピーしました',
-    shareFailedToast: 'コピーに失敗しました',
     seasonOverviewSummary: 'シーズン別 再訪達成度',
     seasonOverviewNote: '季節ごとに、来訪（Traveling Spirit）・特別来訪（Returning Spirits）が一度でも来た精霊の割合をまとめています。行をタップするとその季節で絞り込みます。',
     seasonOverviewOverallLine: '全季節合計: {revisited} / {total} 精霊が再訪済み（{pct}%）',
     seasonOverviewSubLine: '{revisited} / {total} 精霊　・　来訪合計 {visits} 回',
     upcomingSectionLabel: '進行中・次回の特別来訪',
-    upcomingSectionSub: '現在進行中、またはこれから始まる特別来訪（Returning Spirits）の一覧です。「カレンダーに追加」から.ics形式で予定を追加できます。',
+    upcomingSectionSub: '現在進行中、またはこれから始まる特別来訪（Returning Spirits）の一覧です。',
     upcomingEmptyState: '現在、進行中・予定されている特別来訪はありません。',
     calendarOngoingBadge: '🟢 進行中',
-    calendarNextBadge: '🔜 次回予定',
-    calendarAddBtn: 'カレンダーに追加',
-    calendarAddBtnTitle: '.icsファイルをダウンロードしてカレンダーに追加します',
-    toastIcsDownloaded: '.icsファイルをダウンロードしました',
-    toastIcsFailed: 'カレンダーファイルの作成に失敗しました'
+    calendarNextBadge: '🔜 次回予定'
   },
   en: {
     navTitle: '🕊️ Revisit Spirit Database',
@@ -860,24 +823,15 @@ const I18N = {
     seasonSummaryLine: '{season} · {count} spirits · {visits} total visits · most overdue: {mostOverdue} ({days}d)',
     seasonSummaryNeverLine: ' · {n} never revisited',
     areaAll: 'All Areas',
-    shareBtnLabel: 'Share',
-    shareBtnTitle: 'Share this visit history with one tap',
-    shareSnippetTemplate: '{name}\nSeason: {season}\nVisit history: {visits}\n{url}',
-    shareCopiedToast: 'Copied visit history and link to clipboard',
-    shareFailedToast: 'Failed to copy',
     seasonOverviewSummary: 'Season Achievement Overview',
     seasonOverviewNote: 'Shows, for each season, the share of spirits that have had at least one Traveling Spirit or Returning Spirits visit. Tap a row to filter the list by that season.',
     seasonOverviewOverallLine: 'All seasons: {revisited} / {total} spirits revisited ({pct}%)',
     seasonOverviewSubLine: '{revisited} / {total} spirits · {visits} total visits',
     upcomingSectionLabel: 'Ongoing & Next Returning Spirits',
-    upcomingSectionSub: 'Returning Spirits currently active or scheduled to start soon. Use "Add to Calendar" to save the dates as an .ics file.',
+    upcomingSectionSub: 'Returning Spirits currently active or scheduled to start soon.',
     upcomingEmptyState: 'No ongoing or upcoming Returning Spirits right now.',
     calendarOngoingBadge: '🟢 Ongoing',
-    calendarNextBadge: '🔜 Coming Up',
-    calendarAddBtn: 'Add to Calendar',
-    calendarAddBtnTitle: 'Download an .ics file to add this to your calendar',
-    toastIcsDownloaded: 'Downloaded the .ics file',
-    toastIcsFailed: 'Failed to create the calendar file'
+    calendarNextBadge: '🔜 Coming Up'
   }
 };
 
@@ -1097,10 +1051,9 @@ function findSpiritCardEl(nameJa) {
   return Array.from(list.querySelectorAll('.spirit-card')).find(el => el.dataset.spiritName === nameJa) || null;
 }
 
-// 🔗 #spirit=<精霊名> ディープリンクの本体。REVISIT_DATA（shareSpirit()と同じ
-// 対象範囲。NEVER_REVISITED_DATAは来訪履歴も共有ボタンも無いため対象外）に
-// 実在する精霊名にだけ反応し、#spiritList内の該当カードまでスクロールして
-// 一時的にハイライトする。
+// 🔗 #spirit=<精霊名> ディープリンクの本体。REVISIT_DATA（来訪履歴を持つ精霊の
+// み。NEVER_REVISITED_DATAは来訪履歴が無いため対象外）に実在する精霊名にだけ
+// 反応し、#spiritList内の該当カードまでスクロールして一時的にハイライトする。
 // 優先順位: #season=/#area=/#search=フィルターに阻まれて対象カードが現在
 // 表示されていない場合（例: #season=夏&spirit=<冬の精霊>のような組み合わせ）は、
 // #spirit=側を優先するものとし、フィルターを全解除してから再度探す
@@ -1179,60 +1132,6 @@ function isOngoingVisit(v) {
 }
 function hasOngoingVisit(s) { return s.visits.some(isOngoingVisit); }
 
-// 🔗 このページ自身のURL + #spirit=<精霊名> という、その精霊のカードへ直接
-// ジャンプできる共有用リンクを組み立てる（applySpiritHash()と対になる関数）。
-// location.hash（#season=等の現在のフィルター状態）は含めない。共有時点の
-// 閲覧者側の絞り込み状態はリンクを開く相手には無関係で、常に「この精霊の
-// カードを表示する」という意味だけを持つクリーンな#spirit=単体のURLにする。
-function buildSpiritUrl(nameJa) {
-  return location.origin + location.pathname + location.search + '#spirit=' + encodeURIComponent(nameJa);
-}
-
-// 📤 精霊カードの「共有」ボタン用に、来訪履歴のテキストスニペットを組み立てる。
-// ⚠️ 以前はこのサイト（tai-revisit、非公開）自体のURLをあえて含めない方針
-// だったが、#spirit=ディープリンク（buildSpiritUrl()/applySpiritHash()）の
-// 追加に伴い方針変更: 共有ボタンの目的そのものが「このカードへのリンクを
-// 届けること」になったため、URLを含めないと機能として成立しない。
-// サイトが正式公開されるまでは、このURLを共有する運用ができるかどうか
-// （非公開のままでよいか）は別途要検討。
-function buildShareSnippet(s) {
-  const sep = LANG === 'en' ? ', ' : '、';
-  const visitsLine = s.visits.map(v => {
-    const dateLabel = v.endDate ? `${formatDate(v.date)}–${formatDate(v.endDate)}` : formatDate(v.date);
-    return `${dateLabel}（${typeLabel(v.type)}）`;
-  }).join(sep);
-  const name = LANG === 'en' ? `${s.nameEn} (${s.nameJa})` : `${s.nameJa}（${s.nameEn}）`;
-  const season = LANG === 'en' ? seasonLabel(s.season) : s.season;
-  const url = buildSpiritUrl(s.nameJa);
-  return t('shareSnippetTemplate', { name, season, visits: visitsLine, url });
-}
-
-// 📤 Web Share API（主にモバイル）が使える環境ではそちらを、使えない環境
-// （多くのデスクトップブラウザ）ではクリップボードへのコピーにフォールバックする。
-// テキスト側に既にURLを埋め込んでいるため、navigator.share()にはurlを別途
-// 渡さない（一部の共有先でtextとurlが両方表示され、リンクが二重に載ってしまう
-// のを避けるため）。
-async function shareSpirit(nameJa) {
-  const s = REVISIT_DATA.find(x => x.nameJa === nameJa);
-  if (!s) return;
-  const text = buildShareSnippet(s);
-  if (navigator.share) {
-    try {
-      await navigator.share({ text });
-      return;
-    } catch (err) {
-      if (err && err.name === 'AbortError') return; // ユーザーが共有シートをキャンセル
-      // navigator.share自体が失敗した場合はクリップボードへフォールバックする
-    }
-  }
-  try {
-    await navigator.clipboard.writeText(text);
-    showToast(t('shareCopiedToast'));
-  } catch (err) {
-    showToast(t('shareFailedToast'));
-  }
-}
-
 // 🧹 検索語＋季節フィルター＋並び順＋「特別来訪ありのみ」チップをまとめて既定値
 // （未入力／すべての季節／最新の来訪順／チップOFF）に戻す
 function clearAllFilters() {
@@ -1271,7 +1170,7 @@ function renderSeasonSummary(seasonFilter) {
 }
 
 /* ================================================================
-   📅 進行中/次回の特別来訪を.ics形式でカレンダーに追加する機能。
+   📅 進行中/次回の特別来訪の一覧表示。
    endDateを持つ来訪（主にSV、まれにTSの周期来訪も範囲を持つ）のうち、
    終了日が今日以降のものだけを対象にする（終了済みは対象外）。
    isOngoingVisit()と同じ「進行中」の定義に加え、まだ始まっていない
@@ -1324,73 +1223,9 @@ function renderUpcomingRevisits() {
             <span class="spirit-badge area">${escapeHtml(LANG === 'en' ? s.area : areaJa(s.area))}</span>
           </div>
           <div class="visit-list"><span class="visit-chip sv">${dateLabel}</span></div>
-          <button type="button" class="calendar-add-btn" title="${escapeHtml(t('calendarAddBtnTitle'))}"
-            onclick="downloadIcsForVisit('${escapeAttr(s.nameJa)}','${v.date}')">${escapeHtml(t('calendarAddBtn'))}</button>
         </div>
       </div>`;
   }).join('');
-}
-
-// YYYY-MM-DD → YYYYMMDD（iCalendarの終日イベント日付表記）
-function icsDateCompact(dateStr) { return dateStr.replace(/-/g, ''); }
-// iCalendarの終日イベントはDTENDを「含まない」排他的な日付として扱うため、
-// 表示上の最終日（endDate）の翌日をDTENDに使う。
-function icsDatePlusOneDay(dateStr) {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d));
-  dt.setUTCDate(dt.getUTCDate() + 1);
-  return dt.getUTCFullYear() + String(dt.getUTCMonth() + 1).padStart(2, '0') + String(dt.getUTCDate()).padStart(2, '0');
-}
-// RFC5545のTEXT値エスケープ（バックスラッシュ・カンマ・セミコロン・改行）
-function icsEscapeText(str) {
-  return String(str).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
-}
-// 非公開サイト（tai-revisit）自体のURLはDESCRIPTIONにも含めない（共有スニペットと
-// 同じ理由。.icsは端末のカレンダーに残り続けるため、なおさらURLは持たせない）。
-function buildIcsContent(s, v) {
-  const dtStamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  const uid = `tai-revisit-${s.nameEn.replace(/[^A-Za-z0-9]+/g, '')}-${v.date}@taipak5000.github.io`;
-  const summary = `${s.nameJa}（${s.nameEn}） ${typeLabel(v.type)}`;
-  const description = `${areaJa(s.area)} (${s.area})`;
-  const lines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//tai-revisit//Revisit Spirit Database//JA',
-    'CALSCALE:GREGORIAN',
-    'BEGIN:VEVENT',
-    `UID:${uid}`,
-    `DTSTAMP:${dtStamp}`,
-    `DTSTART;VALUE=DATE:${icsDateCompact(v.date)}`,
-    `DTEND;VALUE=DATE:${icsDatePlusOneDay(v.endDate)}`,
-    `SUMMARY:${icsEscapeText(summary)}`,
-    `DESCRIPTION:${icsEscapeText(description)}`,
-    'END:VEVENT',
-    'END:VCALENDAR'
-  ];
-  return lines.join('\r\n');
-}
-
-// 📅 「カレンダーに追加」ボタンから呼ぶ。visit.dateはendDateを持つ来訪の中で
-// 一意になる想定（同じ精霊が同じ開始日で複数の範囲来訪を持つことはない）。
-function downloadIcsForVisit(nameJa, date) {
-  const s = REVISIT_DATA.find(x => x.nameJa === nameJa);
-  if (!s) return;
-  const v = s.visits.find(x => x.date === date && x.endDate);
-  if (!v) return;
-  try {
-    const blob = new Blob([buildIcsContent(s, v)], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${s.nameEn.replace(/[^A-Za-z0-9]+/g, '-')}-${v.date}.ics`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast(t('toastIcsDownloaded'));
-  } catch (e) {
-    showToast(t('toastIcsFailed'));
-  }
 }
 
 /* ================================================================
@@ -1540,8 +1375,6 @@ function renderList() {
           </div>
           <div class="visit-list">${chips}</div>
           <div class="visit-count">${rankBadge}${t('visitCountLine', { count: s.visits.length, days: daysSince(lastVisitEndDate(s)) })}</div>
-          <button type="button" class="spirit-share-btn" title="${escapeHtml(t('shareBtnTitle'))}"
-            onclick="shareSpirit('${escapeAttr(s.nameJa)}')">${escapeHtml(t('shareBtnLabel'))}</button>
         </div>
       </div>`;
   }).join('');
@@ -1609,19 +1442,6 @@ function escapeHtml(str) {
 // （精霊名・季節名など）を埋め込む際のエスケープ（escapeHtml()はHTML実体参照化する
 // ため単一引用符自体は変換せず、この用途には使えない）。
 function escapeAttr(s) { return String(s).replace(/'/g, "\\'"); }
-
-// 🔔 共有・カレンダー登録の結果通知（taipak5000.github.io系の他ツールと同じ
-// showToast()の考え方。複数同時発火時は積み上げて両方見えるようにする）。
-function showToast(msg) {
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.textContent = msg;
-  const stackIndex = document.querySelectorAll('.toast').length;
-  if (stackIndex > 0) el.style.bottom = `calc(84px + env(safe-area-inset-bottom) + ${stackIndex * 44}px)`;
-  document.body.appendChild(el);
-  setTimeout(() => el.classList.add('show'), 10);
-  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 1600);
-}
 
 // ♿ サイドバードロワーのフォーカス管理（開いた時に中へ移動・Tabで閉じ込め・閉じたら
 // 開くきっかけになった要素へ戻す）は下部で定義するgetFocusableEls/trapTabWithin/
