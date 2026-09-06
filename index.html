@@ -298,7 +298,7 @@
       margin-bottom: 8px; display: flex; align-items: center; gap: 5px;
     }
     .settings-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
-    .settings-row-text { flex: 1; font-size: 13.5px; color: var(--text); }
+    .settings-row-text { flex: 1; font-size: 13.5px; color: var(--text); line-height: 1.5; }
     .settings-theme-btn {
       background: var(--bg); border: 1px solid var(--sep); border-radius: var(--r-sm);
       padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap;
@@ -323,8 +323,14 @@
       text-align: center; cursor: pointer;
     }
 
-    footer { text-align: center; padding: 24px 16px; color: var(--text-2); font-size: 13px; border-top: 1px solid var(--sep); margin-top: 40px; line-height: 1.6; }
-    footer a { color: var(--cyan-d); text-decoration: none; }
+    footer { text-align: left; padding: 24px 16px; color: var(--text-2); font-size: 13px; border-top: 1px solid var(--sep); margin-top: 40px; line-height: 1.6; }
+    footer a { color: var(--cyan-d); text-decoration: underline; text-underline-offset: 2px; }
+
+    /* 🔢 数字と単位のコントラスト（数値を太く、単位は現在の文字色のまま少し薄く）。
+       currentColorベースのopacityのみで色を決めるため、視認性チップ（cyan系）・
+       通常テキスト（text-2系）どちらの文脈でも新しい色トークンを増やさずに使える。 */
+    .num-value { font-weight: 700; }
+    .num-unit { font-weight: 400; opacity: 0.7; }
 
 
     /* ── 🧭 site-dock: ページ下部固定のクイックアクセスバー（ハンバーガーサイドバーと併存） ──
@@ -737,7 +743,7 @@ const I18N = {
     footerInfoLink: '設定・更新情報・クレジット・プライバシーポリシー',
     filterStats: '{shown} / {total} 精霊',
     emptyState: '該当する精霊が見つかりませんでした',
-    visitCountLine: '来訪 {count} 回　・　最終来訪から {days} 日',
+    visitCountLine: '来訪 <span class="num-value">{count}</span><span class="num-unit"> 回</span>　・　最終来訪から <span class="num-value">{days}</span><span class="num-unit"> 日</span>',
     rankLabel: '{rank}位',
     rankTitle: '「最終来訪からの日数が長い順」での全精霊中の順位（検索・季節フィルターに関わらず一定）',
     neverRevisitedCount: '（{n}）',
@@ -815,7 +821,7 @@ const I18N = {
     footerInfoLink: "Settings / What's New / Credits / Privacy Policy",
     filterStats: '{shown} / {total} spirits',
     emptyState: 'No matching spirits found',
-    visitCountLine: 'Visited {count}× · {days}d since last visit',
+    visitCountLine: 'Visited <span class="num-value">{count}</span><span class="num-unit">×</span> · <span class="num-value">{days}</span><span class="num-unit">d</span> since last visit',
     rankLabel: '#{rank}',
     rankTitle: 'Rank among all spirits by "Longest Since Last Visit" (unaffected by search/season filter)',
     neverRevisitedCount: '({n})',
@@ -1276,7 +1282,7 @@ function renderSeasonOverview() {
       <button type="button" class="season-overview-row" onclick="jumpToSeasonFilter('${escapeAttr(r.season)}')">
         <div class="season-overview-head">
           <span class="season-overview-name">${escapeHtml(seasonDisplay)}</span>
-          <span class="season-overview-pct">${r.pct}%</span>
+          <span class="season-overview-pct"><span class="num-value">${r.pct}</span><span class="num-unit">%</span></span>
         </div>
         <div class="season-overview-track"><div class="season-overview-fill" style="width:${r.pct}%"></div></div>
         <div class="season-overview-sub">${escapeHtml(t('seasonOverviewSubLine', { revisited: r.revisited, total: r.total, visits: r.totalVisits }))}</div>
