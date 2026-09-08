@@ -147,14 +147,14 @@
     /* 精度に不安がある新機能であることを示す小さな注記（例: 楽譜づくり） */
     .tool-badge-test { font-size: 9px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.3px; }
 
-    .sec-label { font-size: 15px; font-weight: 700; color: var(--text); padding: 20px 4px 10px; display: flex; align-items: center; gap: 6px; }
+    .sec-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-2); padding: 20px 4px 10px; display: flex; align-items: center; gap: 6px; }
     .sec-sub { font-size: 12px; color: var(--text-2); padding: 0 4px 12px; line-height: 1.7; }
-    .card { background: var(--card); border-radius: var(--r); padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); margin-bottom: 14px; }
+    .card { background: var(--card); border-radius: var(--r); padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 0.5px 1px rgba(0,0,0,0.04); margin-bottom: 14px; }
     .card p { font-size: 13px; line-height: 1.8; color: var(--text); }
     .card a { color: var(--cyan-d); text-decoration: underline; text-underline-offset: 2px; }
 
     /* ── 検索・フィルター ─────────────────────── */
-    .filter-card { background: var(--card); border-radius: var(--r); padding: 14px; margin-top: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .filter-card { background: var(--card); border-radius: var(--r); padding: 14px; margin-top: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 0.5px 1px rgba(0,0,0,0.04); }
     .filter-row { display: flex; flex-wrap: wrap; gap: 8px; }
     .filter-search, .filter-select {
       flex: 1 1 200px; background: var(--bg); border: 1.5px solid var(--sep); border-radius: var(--r-sm);
@@ -185,7 +185,7 @@
 
     /* ── 精霊カード ─────────────────────────── */
     .spirit-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
-    .spirit-card { background: var(--card); border-radius: var(--r); padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); display: flex; gap: 12px; }
+    .spirit-card { background: var(--card); border-radius: var(--r); padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 0.5px 1px rgba(0,0,0,0.04); display: flex; gap: 12px; }
     .spirit-icon {
       width: 52px; height: 52px; border-radius: 12px; background: var(--bg); flex-shrink: 0;
       display: flex; align-items: center; justify-content: center; overflow: hidden;
@@ -224,7 +224,7 @@
        既存のborderが無くレイアウトへ影響が出ないため。--cyanはライト/ダーク双方で
        定義済みなのでテーマ別の上書きは不要。 */
     @keyframes spiritCardFlash {
-      0%, 100% { box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+      0%, 100% { box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 0.5px 1px rgba(0,0,0,0.04); }
       20%, 80% { box-shadow: 0 0 0 3px var(--cyan); }
     }
     .spirit-card-highlight { animation: spiritCardFlash 2s ease-in-out; }
@@ -232,7 +232,7 @@
     .empty-state { text-align: center; padding: 40px 16px; color: var(--text-2); font-size: 13px; }
 
     /* ── 折り畳み: まだ再訪が来ていない精霊 ─────────── */
-    .collapse-section { background: var(--card); border-radius: var(--r); padding: 14px 16px; margin-top: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .collapse-section { background: var(--card); border-radius: var(--r); padding: 14px 16px; margin-top: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 0.5px 1px rgba(0,0,0,0.04); }
     .collapse-summary {
       cursor: pointer; font-size: 15px; font-weight: 700; list-style: none;
       display: flex; align-items: center; gap: 8px; color: var(--text);
