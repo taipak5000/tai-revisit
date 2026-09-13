@@ -1458,12 +1458,17 @@ function escapeAttr(s) { return String(s).replace(/'/g, "\\'"); }
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const opening = !sidebar.classList.contains('sidebar-open');
+  // ⚠️ closeOtherTopLevelOverlays()より前にトリガーを確定させること（設定モーダル側の
+  // 同種コメント参照）。設定モーダルが開いた状態でこの関数が呼ばれた場合、
+  // closeOtherTopLevelOverlays内で設定モーダルが閉じられ、その際に設定を開いた要素へ
+  // フォーカスが戻ってしまう（=document.activeElementが上書きされる）ため。
+  if (opening) sidebarOpenerEl = document.activeElement;
+  if (opening) closeOtherTopLevelOverlays('sidebar');
   sidebar.classList.toggle('sidebar-open');
   document.getElementById('sidebarOverlay').classList.toggle('show');
   if (opening) {
     sidebar.setAttribute('role', 'dialog');
     sidebar.setAttribute('aria-modal', 'true');
-    sidebarOpenerEl = document.activeElement;
     pushModalTrap(sidebar);
     const focusables = getFocusableEls(sidebar);
     (focusables[0] || sidebar).focus();
@@ -1628,11 +1633,28 @@ function popModalTrap(container) {
   }
 }
 
+// 🧭 トップレベルのオーバーレイ（設定モーダル・サイドバードロワー）は、このサイトでは
+// site-dockの独立した2つのボタンからそれぞれ単独で開かれる「並び立つ」もの同士であり、
+// 片方を開いた状態でもう片方を開くと画面上に2枚重なって見えてしまう。一方を開く前に
+// もう一方が開いていれば閉じておく（意図的なネスト表示は現状このサイトには存在しないため、
+// exceptId以外は常に閉じてよい。modalTrapStackが依然としてスタック構造なのは、将来
+// 意図的なネストが追加された場合にもwingsと同じ挙動で対応できるようにするため）。
+function closeOtherTopLevelOverlays(exceptId) {
+  if (exceptId !== 'settingsModalOverlay' && document.getElementById('settingsModalOverlay').classList.contains('show')) settingsClose();
+  if (exceptId !== 'sidebar' && document.getElementById('sidebar').classList.contains('sidebar-open')) toggleSidebar();
+}
+
 function settingsOpen() {
+  if (document.getElementById('settingsModalOverlay').classList.contains('show')) return;
+  // ⚠️ closeOtherTopLevelOverlays()より前にトリガーを確定させること。サイドバーが
+  // 開いた状態でこの関数が呼ばれた場合、closeOtherTopLevelOverlays内でサイドバーが
+  // 閉じられ、その際にサイドバーを開いた要素へフォーカスが戻る（=document.activeElement
+  // が上書きされる）ため、後から読むと「設定を開いた本当のきっかけ」を取り違える。
+  settingsOpenerEl = document.activeElement;
+  closeOtherTopLevelOverlays('settingsModalOverlay');
   document.getElementById('settingsShortcutsToggle').checked = skyShortcutsEnabled();
   applyThemeToDOM();
   syncSettingsLangButtons();
-  settingsOpenerEl = document.activeElement;
   document.getElementById('settingsModalOverlay').classList.add('show');
   const card = document.getElementById('settingsModalCard');
   pushModalTrap(card);
