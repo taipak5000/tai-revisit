@@ -596,7 +596,7 @@
     <span class="site-dock-icon"><span class="icon-chip" style="width:28px; height:28px;"><svg width="22" height="22"><use href="#i-menu"/></svg></span></span>
     <span class="site-dock-label" data-i18n="dockTools">他のツール</span>
   </button>
-  <button type="button" onclick="settingsOpen()">
+  <button type="button" id="dockSettingsBtn" onclick="settingsOpen()">
     <span class="site-dock-icon"><span class="icon-chip" style="width:28px; height:28px;"><svg width="22" height="22"><use href="#i-settings"/></svg></span></span>
     <span class="site-dock-label" data-i18n="dockSettings">表示設定</span>
   </button>
@@ -1666,11 +1666,29 @@ function settingsOpen() {
   (focusables[0] || card).focus();
 }
 
+// ♿ サイドバーが開いた状態で'?'ショートカット経由でSettingsを開いた場合、settingsOpen()が
+// 捕捉するdocument.activeElementはサイドバー自身のフォーカストラップの先頭要素
+// （.sidebar-close-btn）になる。その直後closeOtherTopLevelOverlays内でサイドバーが
+// 閉じられ、.sidebar-close-btnはdisplay:noneで隠れる（DOMからは消えないためdocument.
+// contains()は素通りしてしまう）。この状態でsettingsOpenerEl.focus()を呼んでも
+// 非表示要素へのfocus()は無反応（silent no-op）になり、フォーカスが行き場を失って
+// documentActiveElementがbody等へ落ちてしまう。そのためdocument.contains()だけでなく
+// 「今この瞬間、実際にフォーカス可能か（＝表示されているか）」もoffsetParentで確認し、
+// ダメなら常に安定して存在するSettingsのdock起動ボタン自体へフォールバックする
+// （direct dockクリックで開いた通常経路ではsettingsOpenerElがこのボタン自身なので
+// 挙動は変わらない）。
+function isFocusRestorable(el) {
+  return !!el && typeof el.focus === 'function' && document.contains(el) && el.offsetParent !== null;
+}
+
 function settingsClose() {
   document.getElementById('settingsModalOverlay').classList.remove('show');
   popModalTrap(document.getElementById('settingsModalCard'));
-  if (settingsOpenerEl && typeof settingsOpenerEl.focus === 'function' && document.contains(settingsOpenerEl)) {
+  if (isFocusRestorable(settingsOpenerEl)) {
     settingsOpenerEl.focus();
+  } else {
+    const fallback = document.getElementById('dockSettingsBtn');
+    if (fallback) fallback.focus();
   }
   settingsOpenerEl = null;
 }
