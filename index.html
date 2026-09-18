@@ -384,6 +384,10 @@
     .settings-modal-card {
       width: 100%; max-width: 100%; max-height: 88vh; max-height: 88dvh;
       border-radius: 20px 20px 0 0;
+      /* 🩹 .site-dock（画面下部固定、z-index:1001でこのシートより常に手前）に最後の項目が
+         隠れないよう下端だけ底上げ。body{padding-bottom}と同じ「site-dock分の余白」(76px)を流用。
+         上記の基本ルールのpadding:20pxはそのまま（top/left/rightは上書きしない）。 */
+      padding-bottom: calc(76px + env(safe-area-inset-bottom));
       box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.25);
       position: relative; overscroll-behavior: contain;
       touch-action: pan-y; will-change: transform;
