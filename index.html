@@ -437,6 +437,8 @@
     <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-6.1-6.5-11A6.5 6.5 0 0 1 18.5 10c0 4.9-6.5 11-6.5 11Z"/><path d="M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></symbol>
     <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.5 6L20 12l-6.5 1.5L12 21l-1.5-6L4 12l6.5-1.5Z"/></symbol>
     <symbol id="i-music-note" viewBox="0 0 24 24"><g transform="translate(12 12) scale(1.207) translate(-13.75 -10.75)"><path d="M9 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M11.5 15.5V5l7-1.5v9"/><path d="M18.5 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></g></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h13A1.5 1.5 0 0 1 20 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5Z"/><circle cx="9" cy="10.5" r="2"/><path d="M6 16c.4-1.7 1.7-2.8 3-2.8s2.6 1.1 3 2.8M14 9.5h4M14 12.5h3"/></symbol>
+    <symbol id="i-person" viewBox="0 0 24 24"><g transform="translate(12 12) scale(1.094) translate(-12 -12)"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></g></symbol>
     <symbol id="i-sync" viewBox="0 0 24 24"><g transform="translate(12 12) scale(1.094) translate(-12 -12)"><path d="M17 7h-8a4 4 0 0 0-4 4"/><path d="M11 4l-2 3 2 3"/><path d="M7 17h8a4 4 0 0 0 4-4"/><path d="M13 20l2-3-2-3"/></g></symbol>
 </defs></svg>
 
@@ -512,8 +514,10 @@
     <a href="https://taipak5000.github.io/tai-catalog/" class="sidebar-nav-link"><span class="tool-badge-test">test</span><svg class="inline-icon" width="19" height="19"><use href="#i-tree"/></svg> <span data-i18n="toolCatalog">精霊ツリー管理</span></a>
     <span class="sidebar-nav-link current-tool"><svg class="inline-icon" width="19" height="19"><use href="#i-wing"/></svg> <span data-i18n="toolRevisitSelf">再訪精霊データベース（現在地）</span></span>
     <a href="https://taipak5000.github.io/tai-score/" class="sidebar-nav-link"><span class="tool-badge-test">test</span><svg class="inline-icon" width="19" height="19"><use href="#i-music-note"/></svg> <span data-i18n="toolScore">楽譜づくり</span></a>
+    <a href="https://taipak5000.github.io/tai-card/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-card"/></svg> <span data-i18n="toolCard">星紡ぎカード</span></a>
     <a href="https://taipak5000.github.io/tai-transfer/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-sync"/></svg> <span data-i18n="toolTransfer">データ引継ぎ</span></a>
     <a href="https://taipak5000.github.io/tai-info/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-settings"/></svg> <span data-i18n="toolInfo">設定・更新情報</span></a>
+    <a href="https://taipak5000.github.io/skyzztai-profile/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-person"/></svg> <span data-i18n="toolProfile">作者プロフィール</span></a>
   </aside>
 
   <div>
@@ -751,8 +755,10 @@ const I18N = {
     toolWings: '羽トラッカー',
     toolCatalog: '精霊ツリー管理',
     toolScore: '楽譜づくり',
+    toolCard: '星紡ぎカード',
     toolTransfer: 'データ引継ぎ',
     toolInfo: '設定・更新情報',
+    toolProfile: '作者プロフィール',
     toolRevisitSelf: '再訪精霊データベース',
     introPart1: '過去に来訪（Traveling Spirit）・特別来訪（Returning Spirits）した精霊の履歴を検索できる、閲覧専用の参考データベースです。所持チェックなどの記録機能はありません。データは',
     introPart2: 'プロジェクトを基にしています。',
@@ -831,8 +837,10 @@ const I18N = {
     toolWings: 'Wing Tracker',
     toolCatalog: 'Spirit Tree Catalog',
     toolScore: 'Sheet Music Maker',
+    toolCard: 'Self-Intro Card Maker',
     toolTransfer: 'Data Transfer',
     toolInfo: 'Settings & Updates',
+    toolProfile: 'Creator Profile',
     toolRevisitSelf: 'Revisit Spirit Database',
     introPart1: 'A read-only reference database for looking up the visit history of Traveling Spirits and Returning Spirits. There is no ownership-tracking feature here. Data is based on the',
     introPart2: ' project.',
