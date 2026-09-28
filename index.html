@@ -162,6 +162,10 @@
     }
     .filter-search:focus, .filter-select:focus { outline: none; border-color: var(--cyan); }
     .filter-select { flex: 1 1 140px; }
+    /* 🩹 iOS Safariは入力欄のfont-sizeが16px未満だと自動ズームし、そのズームが
+       解除されず固定される不具合があるため、text系inputのfilter-searchのみ
+       16pxに引き上げる（zoom対象外のselectであるfilter-selectは14pxのまま）。 */
+    .filter-search { font-size: 16px; }
     /* ♿ 来訪種別（通常/特別来訪/エラー表示）はチップの背景色だけでも判別できるが、
        色だけに頼ると色覚多様性のあるユーザーや（ホバー前提のtitle属性が効かない）
        タッチ操作中心のユーザーには伝わらない。常時表示の凡例として、実際のチップと
