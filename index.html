@@ -143,7 +143,6 @@
       width: 100%; box-sizing: border-box; white-space: nowrap;
     }
     .sidebar-nav-link:hover { background: var(--bg); }
-    .sidebar-nav-link.current-tool { background: var(--cyan-bg); color: var(--cyan-d); font-weight: 700; }
     /* 精度に不安がある新機能であることを示す小さな注記（例: 楽譜づくり） */
     .tool-badge-test { font-size: 9px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.3px; }
 
@@ -508,20 +507,7 @@
       <div class="sidebar-section-label" id="sidebarTitle" data-i18n="relatedTools">関連ツール</div>
       <button class="sidebar-close-btn" onclick="toggleSidebar()"><span class="icon-chip" style="width:22px; height:22px;"><svg width="16" height="16"><use href="#i-close"/></svg></span></button>
     </div>
-    <a href="https://taipak5000.github.io/tai-item/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-folder"/></svg> <span data-i18n="toolItem">アイテム所持管理</span></a>
-    <a href="https://taipak5000.github.io/tai-emote/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-masks"/></svg> <span data-i18n="toolEmote">エモート所持率管理</span></a>
-    <a href="https://taipak5000.github.io/share/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-pin"/></svg> <span data-i18n="toolShare">創作物管理ツール</span></a>
-    <a href="https://taipak5000.github.io/tai-nomacan/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-candle"/></svg> <span data-i18n="toolNomacan">ノマキャン計算機</span></a>
-    <a href="https://taipak5000.github.io/star-candle/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-star-candle"/></svg> <span data-i18n="toolStarCandle">星のキャンドル計算機</span></a>
-    <a href="https://taipak5000.github.io/companion/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-sparkle"/></svg> <span data-i18n="toolCompanion">精霊同行ツール</span></a>
-    <a href="https://taipak5000.github.io/wings/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-wing"/></svg> <span data-i18n="toolWings">羽トラッカー</span></a>
-    <a href="https://taipak5000.github.io/tai-catalog/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-tree"/></svg><span class="tool-badge-test">test</span> <span data-i18n="toolCatalog">精霊ツリー管理</span></a>
-    <span class="sidebar-nav-link current-tool"><svg class="inline-icon" width="19" height="19"><use href="#i-wing"/></svg> <span data-i18n="toolRevisitSelf">再訪精霊データベース（現在地）</span></span>
-    <a href="https://taipak5000.github.io/tai-score/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-music-note"/></svg><span class="tool-badge-test">test</span> <span data-i18n="toolScore">楽譜づくり</span></a>
-    <a href="https://taipak5000.github.io/tai-card/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-card"/></svg> <span data-i18n="toolCard">星紡ぎカード</span></a>
-    <a href="https://taipak5000.github.io/tai-transfer/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-sync"/></svg> <span data-i18n="toolTransfer">データ引継ぎ</span></a>
-    <a href="https://taipak5000.github.io/tai-info/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-settings"/></svg> <span data-i18n="toolInfo">設定・クレジット</span></a>
-    <a href="https://taipak5000.github.io/skyzztai-profile/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#i-person"/></svg> <span data-i18n="toolProfile">作者プロフィール</span></a>
+    <div id="siteLinksNav"></div>
   </aside>
 
   <div>
@@ -753,20 +739,6 @@ const I18N = {
   ja: {
     navTitle: '再訪精霊データベース',
     relatedTools: '関連ツール',
-    toolItem: 'アイテム所持管理',
-    toolEmote: 'エモート所持率管理',
-    toolShare: '創作物管理ツール',
-    toolNomacan: 'ノマキャン計算機',
-    toolStarCandle: '星のキャンドル計算機',
-    toolCompanion: '精霊同行ツール',
-    toolWings: '羽トラッカー',
-    toolCatalog: '精霊ツリー管理',
-    toolScore: '楽譜づくり',
-    toolCard: '星紡ぎカード',
-    toolTransfer: 'データ引継ぎ',
-    toolInfo: '設定・クレジット',
-    toolProfile: '作者プロフィール',
-    toolRevisitSelf: '再訪精霊データベース',
     introPart1: '過去に来訪（Traveling Spirit）・特別来訪（Returning Spirits）した精霊の履歴を検索できる、閲覧専用の参考データベースです。所持チェックなどの記録機能はありません。データは',
     introPart2: 'プロジェクトを基にしています。',
     searchPlaceholder: '精霊名で検索…',
@@ -836,20 +808,6 @@ const I18N = {
   en: {
     navTitle: 'Revisit Spirit Database',
     relatedTools: 'Related Tools',
-    toolItem: 'Item Collection',
-    toolEmote: 'Emote Collection',
-    toolShare: 'Creation Manager',
-    toolNomacan: 'Nomacan Calculator',
-    toolStarCandle: 'Star Candle Calculator',
-    toolCompanion: 'Spirit Companion Tool',
-    toolWings: 'Wing Tracker',
-    toolCatalog: 'Spirit Tree Catalog',
-    toolScore: 'Sheet Music Maker',
-    toolCard: 'Self-Intro Card Maker',
-    toolTransfer: 'Data Transfer',
-    toolInfo: 'Settings & Credits',
-    toolProfile: 'Creator Profile',
-    toolRevisitSelf: 'Revisit Spirit Database',
     introPart1: 'A read-only reference database for looking up the visit history of Traveling Spirits and Returning Spirits. There is no ownership-tracking feature here. Data is based on the',
     introPart2: ' project.',
     searchPlaceholder: 'Search by spirit name…',
@@ -968,6 +926,7 @@ function setLang(lang) {
   localStorage.setItem('sky_app_lang', LANG);
   applyI18n();
   applyThemeToDOM(); // ダーク/ライト表示ボタンの文言（言語依存）を更新
+  renderSiteLinks();
   populateSeasonFilter();
   populateNeverRevisitedSeasonFilter();
   populateAreaFilter();
@@ -1531,6 +1490,52 @@ function spiritItemsHtml(nameEn) {
 // ため単一引用符自体は変換せず、この用途には使えない）。
 function escapeAttr(s) { return String(s).replace(/'/g, "\\'"); }
 
+/* ================================================================
+   🧭 共通「関連ツール」一覧（サイドバー）
+   一覧の元データは1か所だけ: https://taipak5000.github.io/tai-item/site-links.json
+   （itemリポジトリ）。そこを編集すると全サイトのサイドバーに反映される。
+   取得結果は端末にキャッシュし、オフラインでも前回の一覧で表示する。
+   ※反映は各サイトのService Workerのキャッシュ経由のため、編集後1回リロードが遅れることがある
+   ================================================================ */
+const SITE_LINKS_URL = 'https://taipak5000.github.io/tai-item/site-links.json';
+const SITE_LINKS_CACHE_KEY = 'sky_site_links_v1'; // 端末単位・全サイト共通（プロフィールには依存しない）
+let siteLinksData = null;
+
+function siteLinksParse(d) {
+  if (!d || !Array.isArray(d.tools)) return null;
+  const ok = d.tools.filter(t => t && /^[A-Za-z0-9._-]+$/.test(t.path) && /^i-[a-z0-9-]+$/.test(t.icon));
+  return ok.length ? ok : null;
+}
+function siteLinksLoadCached() {
+  try { return siteLinksParse(JSON.parse(localStorage.getItem(SITE_LINKS_CACHE_KEY))); } catch (e) { return null; }
+}
+async function siteLinksRefresh() { // 一覧が変わったらtrue
+  const res = await fetch(SITE_LINKS_URL, { cache: 'no-cache' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const raw = await res.json();
+  const tools = siteLinksParse(raw);
+  if (!tools) throw new Error('invalid site-links.json');
+  const changed = JSON.stringify(tools) !== JSON.stringify(siteLinksData);
+  siteLinksData = tools;
+  try { localStorage.setItem(SITE_LINKS_CACHE_KEY, JSON.stringify(raw)); } catch (e) {}
+  return changed;
+}
+function siteLinkName(tool, lang) { return tool[lang] || tool.en || tool.ja; }
+
+function renderSiteLinks() {
+  const nav = document.getElementById('siteLinksNav');
+  if (!nav) return;
+  if (!siteLinksData) { nav.innerHTML = '<p class="sec-sub">ツール一覧を読み込めませんでした / Could not load the tool list</p>'; return; }
+  nav.innerHTML = siteLinksData.map(t =>
+    `<a href="https://taipak5000.github.io/${t.path}/" class="sidebar-nav-link"><svg class="inline-icon" width="19" height="19"><use href="#${t.icon}"/></svg>${t.badgeTest ? '<span class="tool-badge-test">test</span> ' : ' '}${escapeHtml(siteLinkName(t, LANG))}</a>`
+  ).join('');
+}
+function initSiteLinks() {
+  siteLinksData = siteLinksLoadCached();
+  renderSiteLinks();
+  siteLinksRefresh().then(changed => { if (changed) renderSiteLinks(); }).catch(() => renderSiteLinks());
+}
+
 // ♿ サイドバードロワーのフォーカス管理（開いた時に中へ移動・Tabで閉じ込め・閉じたら
 // 開くきっかけになった要素へ戻す）は下部で定義するgetFocusableEls/trapTabWithin/
 // pushModalTrap・popModalTrapを設定モーダルと共用する（sidebarOpenerElは同ファイル後方で定義）。
@@ -1818,6 +1823,7 @@ document.addEventListener('keydown', function (e) {
 // スナップショットとして確保しておく。
 const initialSpiritHashTarget = parseSpiritHash();
 applyI18n();
+initSiteLinks();
 applyThemeToDOM();
 populateSeasonFilter();
 populateNeverRevisitedSeasonFilter();
